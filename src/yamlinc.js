@@ -1,13 +1,14 @@
 /*!
- * dockerops
- * Copyright(c) 2016-2017 Javanile.org
+ * Yamlinc
+ * Copyright(c) 2016-2018 Javanile.org
  * MIT Licensed
  */
 
 var fs = require("fs"),
-    path = require("path"),
-    util = require("./util"),
-    ops = require("./ops");
+    realpath = require("fs").realpathSync,
+    dirname = require("path").dirname,
+    yamljs = require("yamljs"),
+    helpers = require("./helpers");
 
 module.exports = {
 
@@ -18,53 +19,103 @@ module.exports = {
      * @returns {string}
      */
     run: function(args, callback) {
-        var opts = {};
-
-        if (typeof args == "undefined" || !args) { args = []; }
-
-        var info = args.indexOf("--info");
-        if (info > -1) { opts['showInfo'] = true; args.splice(info, 1); }
-
-        if (args.length === 0 || (args.length === 1 && ops.hasEnvironment(args))) {
-            return ops.cmdPs(args, opts, callback);
+        if (typeof args == "undefined" || !args || args.length === 0) {
+            return helpers.error("Arguments error", "type: yamlinc --help");
         }
 
-        var cmd = "ps";
-
-        for (var i in args) {
-            if (!args.hasOwnProperty(i)) { continue; }
-            if (args[i].charAt(0) != "-") {
-                cmd = args[i];
-                args.splice(i, 1);
-                break;
+        //
+        var commands = {
+            '--help': 'getHelp',
+            '--version': 'getVersion',
+        }
+        for (command in commands) {
+            if (args.indexOf(command) > -1) {
+                return this[commands[command]](args);
             }
         }
 
-        var fnc = "cmd" + cmd.charAt(0).toUpperCase() + cmd.slice(1).toLowerCase();
-
-        // Handle as OPS direct command with arguments
-        if (typeof ops[fnc] === "function") {
-            return ops[fnc](args, opts, callback);
+        // looking for file in parameters
+        var file = null;
+        for (var i in args) {
+            if (!args.hasOwnProperty(i)) { continue; }
+            if (args[i].charAt(0) != "-") { file = args[i]; args.splice(i, 1); break; }
         }
 
-        // Handle internal command
-        switch (cmd) {
-            case "--help":
-                return this.getHelp(args);
-            case "--version":
-                return this.getVersion();
+        //
+        if (!file) {
+            return helpers.error("Arguments error", "missing file name.");
         }
 
-        // Handle defaults commands
-        if (ops.defaults.indexOf(cmd) > -1) {
-            return ops.runDefault([cmd].concat(args), opts, callback)
+        //
+        if (!fs.existsSync(file)) {
+            return helpers.error("File error", "file '"+file+"' not found.");
         }
 
-        // Handle as docker-compose service name with default OPS command
-        var service = cmd;
-        opts['showInfo'] = true;
-        if (args.length == 0 || (args.length === 1 && ops.hasEnvironment(args))) { args.push("bash"); }
-        return ops.cmdExec([service].concat(args), opts, callback)
+        // Compile yaml files
+        helpers.info("Analize file", file);
+        var data = this.resolve(file);
+
+        // Save compiled single file
+        var fileInc = file.replace(/\.yml$/, '.inc.yml');
+        helpers.info("Compile file", fileInc);
+        fs.writeFileSync(fileInc, yamljs.stringify(data, 10));
+    },
+
+    /**
+     *
+     * @param file
+     * @param includeTag
+     * @returns {*}
+     */
+    resolve: function(file, includeTag)
+    {
+        if (typeof includeTag === "undefined") { includeTag = '$include'; }
+        var path = dirname(realpath(file));
+        var data = yamljs.load(file);
+        this.recursiveResolve(data, path, includeTag);
+        return data;
+    },
+
+    /**
+     * Walk through array and find include tag.
+     *
+     * @param array  $yaml       reference of an array
+     * @param string $path       base path for relative inclusion
+     * @param string $includeTag tag to include file
+     */
+    recursiveResolve: function(data, path, includeTag) {
+        if (typeof data !== 'object') {
+            return;
+        }
+        var includes = {};
+        for (var key in data) {
+            if (key === includeTag) {
+                if (typeof data[key] === "string" && data[key]) {
+                    file = realpath(path + '/' + data[key]);
+                    if (file && fs.existsSync(file)) {
+                        helpers.info("Include file", data[key]);
+                        var include = this.resolve(file, includeTag);
+                        includes = Object.assign(includes, include);
+                    }
+                } else if (typeof data[key] === "object") {
+                    for (var index in data[key]) {
+                        file = realpath(path + '/' + data[key][index]);
+                        if (file && fs.existsSync(file)) {
+                            helpers.info("Include file", data[key][index]);
+                            var include = this.resolve(file, includeTag);
+                            includes = Object.assign(includes, include);
+                        }
+                    }
+                }
+                delete data[includeTag];
+                continue;
+            }
+            this.recursiveResolve(data[key], path, includeTag);
+        }
+
+        if (includes && Object.keys(includes).length) {
+            data = Object.assign(data, includes);
+        }
     },
 
     /**
@@ -74,10 +125,7 @@ module.exports = {
      */
     getHelp: function (args) {
         var help = path.join(__dirname, "../help/help.txt");
-        if (!args[0]) { return console.log(fs.readFileSync(help)+""); }
-        help = path.join(__dirname, "../help/" + args[0] + ".txt");
-        if (fs.existsSync(help)) { return console.log(fs.readFileSync(help)); }
-        return util.err("&cmd-undefined", { cmd: args[0] });
+        return console.log(fs.readFileSync(help)+"");
     },
 
     /**

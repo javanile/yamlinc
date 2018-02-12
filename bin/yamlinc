@@ -11,14 +11,14 @@ var fs = require("fs");
 var path = require("path");
 var local = path.join(process.cwd(), "node_modules/yamlinc/src/yamlinc.js");
 var argv = process.argv.slice(2);
-var cli = null;
+var yamlinc = null;
 
 if (!fs.existsSync(local)) {
-    cli = require("../src/cli");
+    yamlinc = require("../src/yamlinc");
 } else {
-    cli = require(local);
+    yamlinc = require(local);
 }
 
-cli.run(argv, function (output) {
+yamlinc.run(argv, function (output) {
     //console.log(output);
 });

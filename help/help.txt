@@ -1,0 +1,3 @@
+   Usage: yamlinc [command...] <file>
+ Command: --version   Print software version
+          --help      Print software man page

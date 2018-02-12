@@ -1,0 +1,7 @@
+
+items:
+  - item: abosi
+    desc: abosi ibnambi
+
+parts:
+  $include: sample2-include1.yml

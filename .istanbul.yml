@@ -1,5 +1,5 @@
 instrumentation:
-    include-all-sources: true
+  include-all-sources: true
 
 reporting:
-    dir: ./build/coverage
+  dir: ./build/coverage

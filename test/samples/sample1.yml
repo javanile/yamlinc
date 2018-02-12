@@ -1,0 +1,6 @@
+
+game:
+  $include: sample1-include1.yml
+  figures:
+  - fig1
+  - fig2

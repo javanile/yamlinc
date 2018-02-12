@@ -1,0 +1,25 @@
+
+l1:
+  l2:
+    l3:
+      items:
+        - item: abosi
+          desc: abosi ibnambi
+      kind:
+        - asd
+        - dsa
+        - das
+        - sad
+      power:
+        name: empty
+
+  l4:
+    kind:
+      - asd
+      - dsa
+      - das
+      - sad
+
+items:
+  - item: abosi
+    desc: abosi ibnambi

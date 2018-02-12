@@ -1,0 +1,14 @@
+
+l1:
+  l2:
+    l3:
+      $include:
+        - sample3-include1.yml
+        - sample3-include2.yml
+        - sample3-include3.yml
+
+  l4:
+    $include:
+      - sample3-include2.yml
+
+$include: sample3-include1.yml

@@ -1,0 +1,24 @@
+
+
+items:
+  - item: abosi
+    desc: abosi ibnambi
+
+parts:
+  /lofin:
+    get:
+      tags:
+      - login
+      summary: Form login
+      description: Generate login form for sign in page.
+      produces:
+      - application/json
+      responses:
+        200:
+          description: Successful operation.
+          schema:
+            type: object
+            items:
+            #$ref: '#/definitions/Form'
+        500:
+          description: Internal Server Error.

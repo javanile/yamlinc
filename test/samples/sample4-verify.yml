@@ -1,0 +1,14 @@
+
+game:
+  kind:
+    - point-and-click
+    - new-age
+  figures:
+    - kind:
+        - point-and-click
+        - new-age
+    - fig2
+
+kind:
+  - point-and-click
+  - new-age

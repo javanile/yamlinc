@@ -1,0 +1,6 @@
+
+game:
+  kind: point-and-click
+  figures:
+  - fig1
+  - fig2
