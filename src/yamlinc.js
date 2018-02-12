@@ -7,10 +7,21 @@
 var fs = require("fs"),
     realpath = require("fs").realpathSync,
     dirname = require("path").dirname,
+    join = require("path").join,
     yamljs = require("yamljs"),
     helpers = require("./helpers");
 
+var watcher = require("chokidar").watch("./**/*.yml", {
+    persistent: true,
+    usePolling: true
+});
+
 module.exports = {
+
+    /**
+     *
+     */
+    watcherEnabled: false,
 
     /**
      * Command line entry-point.
@@ -27,6 +38,7 @@ module.exports = {
         var commands = {
             '--help': 'getHelp',
             '--version': 'getVersion',
+            '--watch': 'runCommandWatcher'
         }
         for (command in commands) {
             if (args.indexOf(command) > -1) {
@@ -38,7 +50,9 @@ module.exports = {
         var file = null;
         for (var i in args) {
             if (!args.hasOwnProperty(i)) { continue; }
-            if (args[i].charAt(0) != "-") { file = args[i]; args.splice(i, 1); break; }
+            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
+                file = args[i]; args.splice(i, 1); break;
+            }
         }
 
         //
@@ -93,7 +107,7 @@ module.exports = {
                 if (typeof data[key] === "string" && data[key]) {
                     file = realpath(path + '/' + data[key]);
                     if (file && fs.existsSync(file)) {
-                        helpers.info("Include file", data[key]);
+                        helpers.info("Include file", file);
                         var include = this.resolve(file, includeTag);
                         includes = Object.assign(includes, include);
                     }
@@ -101,7 +115,7 @@ module.exports = {
                     for (var index in data[key]) {
                         file = realpath(path + '/' + data[key][index]);
                         if (file && fs.existsSync(file)) {
-                            helpers.info("Include file", data[key][index]);
+                            helpers.info("Include file", file);
                             var include = this.resolve(file, includeTag);
                             includes = Object.assign(includes, include);
                         }
@@ -119,12 +133,67 @@ module.exports = {
     },
 
     /**
+     *
+     */
+    runCommandWatcher: function (args) {
+        var yamlinc = this;
+        args.splice(args.indexOf("--watch"), 1);
+
+        var file = null;
+        var fileInc = null;
+        for (var i in args) {
+            if (!args.hasOwnProperty(i)) { continue; }
+            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
+                file = realpath(args[i]);
+                fileInc = file.replace(/\.yml$/, '.inc.yml');
+                args[i] = fileInc; break;
+            }
+        }
+
+        //
+        watcher
+            .on('add', function(change) { yamlinc.handleFileChange(change, file, fileInc); })
+            .on('change', function(change) { yamlinc.handleFileChange(change, file, fileInc); })
+            .on('unlink', function(change) { yamlinc.handleFileChange(change, file, fileInc); });
+
+        //
+        this.directCompile(file, fileInc);
+
+        //
+        var cmd = args.shift();
+        setTimeout(function(){
+            yamlinc.watcherEnabled = true;
+            helpers.info("Command exec", cmd + " " + args.join(" "));
+            helpers.spawn(cmd, args);
+        }, 1000);
+    },
+
+    /**
+     *
+     */
+    handleFileChange: function (change, file, fileInc) {
+        if (!this.watcherEnabled || change.match(/\.inc\.yml$/)) { return; }
+        helpers.info('Changed file', realpath(change));
+        this.directCompile(file, fileInc);
+    },
+
+    /**
+     *
+     */
+    directCompile: function (file, fileInc) {
+        helpers.info("Analize file", file);
+        var data = this.resolve(file);
+        helpers.info("Compile file", fileInc);
+        fs.writeFileSync(fileInc, yamljs.stringify(data, 10));
+    },
+
+    /**
      * Get sotware help.
      *
      * @param args
      */
     getHelp: function (args) {
-        var help = path.join(__dirname, "../help/help.txt");
+        var help = join(__dirname, "../help/help.txt");
         return console.log(fs.readFileSync(help)+"");
     },
 
@@ -134,7 +203,7 @@ module.exports = {
      * @param args
      */
     getVersion: function () {
-        var info = JSON.parse(fs.readFileSync(path.join(__dirname, "../package.json")), "utf8");
+        var info = JSON.parse(fs.readFileSync(join(__dirname, "../package.json")), "utf8");
         return info.name + "@" + info.version;
     }
 };

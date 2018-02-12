@@ -1,3 +1,9 @@
    Usage: yamlinc [command...] <file>
- Command: --version   Print software version
-          --help      Print software man page
+
+ Command: --watch [executable args...]   Watch for file changes
+                                         during system executable running
+                                         (es. yamlinc --watch spectacle -d api.yml)
+
+          --version                      Print software version
+
+          --help                         Print software man page
