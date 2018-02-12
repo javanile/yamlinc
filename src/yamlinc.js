@@ -105,17 +105,17 @@ module.exports = {
         for (var key in data) {
             if (key === includeTag) {
                 if (typeof data[key] === "string" && data[key]) {
-                    file = realpath(path + '/' + data[key]);
+                    file = path + '/' + data[key];
                     if (file && fs.existsSync(file)) {
-                        helpers.info("Include file", file);
+                        helpers.info("Include file", realpath(file));
                         var include = this.resolve(file, includeTag);
                         includes = Object.assign(includes, include);
                     }
                 } else if (typeof data[key] === "object") {
                     for (var index in data[key]) {
-                        file = realpath(path + '/' + data[key][index]);
+                        file = path + '/' + data[key][index];
                         if (file && fs.existsSync(file)) {
-                            helpers.info("Include file", file);
+                            helpers.info("Include file", realpath(file));
                             var include = this.resolve(file, includeTag);
                             includes = Object.assign(includes, include);
                         }
