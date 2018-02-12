@@ -1,0 +1,28 @@
+{
+    "name": "yamlinc",
+    "version": "0.0.44",
+    "license": "MIT",
+    "author": {
+        "name": "Francesco Bianco",
+        "email": "bianco@javanile.org"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/javanile/yamlinc.git"
+    },
+    "bin": {
+        "yamlinc": "./bin/yamlinc"
+    },
+    "scripts": {
+        "test": "mocha --reporter spec --recursive | sed '/^\\s*$/d'",
+        "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec --recursive"
+    },
+    "devDependencies": {
+        "chai": "^3.5.0",
+        "chai-fs": "^1.0.0",
+        "mocha": "^3.2.0"
+    },
+    "dependencies": {
+        "yamljs": "^0.3.0"
+    }
+}

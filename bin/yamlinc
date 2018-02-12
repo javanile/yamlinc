@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+/*!
+ * dockerops
+ * Copyright(c) 2016-2017 Javanile.org
+ * MIT Licensed
+ */
+
+"use strict";
+
+var fs = require("fs");
+var path = require("path");
+var local = path.join(process.cwd(), "node_modules/yamlinc/src/yamlinc.js");
+var argv = process.argv.slice(2);
+var cli = null;
+
+if (!fs.existsSync(local)) {
+    cli = require("../src/cli");
+} else {
+    cli = require(local);
+}
+
+cli.run(argv, function (output) {
+    //console.log(output);
+});

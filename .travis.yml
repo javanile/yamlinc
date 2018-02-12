@@ -1,0 +1,23 @@
+os: linux
+group: stable
+dist: trusty
+sudo: required
+language: node_js
+node_js: 6
+
+branches:
+  only: master
+
+before_script:
+  - mkdir -p build/coverage
+  - npm install -g istanbul
+  - npm install -g codeclimate-test-reporter
+
+script:
+  - npm run coverage
+
+after_success:
+  - codeclimate-test-reporter < build/coverage/lcov.info
+
+notifications:
+  email: bianco@javanile.org
