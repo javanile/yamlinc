@@ -5,7 +5,7 @@ Crate a composed YAML file using $include tag.
 
 1. Install global yamlinc command-line utility
 ```
-npm install yamlinc -g
+$ npm install yamlinc -g
 ```
 
 2. Create "my_swagger_doc.yml" and split it into multiple file  
@@ -33,7 +33,7 @@ paths:
 ```yaml
 ## file: others-paths.yml
 /api/other/one:
-w  get: ...      
+  get: ...      
 /api/other/two:
   post: ...
 ```
