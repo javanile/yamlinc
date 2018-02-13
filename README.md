@@ -44,8 +44,17 @@ $ yamlinc my_swagger_doc.yml
 ```
 
 4. Get your compiled file 'my_swagger_doc.inc.yml'
-> **NOTICE:** Every compiled file have '*.inc.yml' extension
+> **NOTICE:** Ymalinc append '*.inc.yml' extension to compiled file.
 
 ## Develompment watcher
+During development you need costantily updated compiled file by watching changes of dependences
+
+```
+$ yamlinc --watch spectacle -d my_swagger_doc.yml
+```
+
+
+
+
 
 
