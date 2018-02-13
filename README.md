@@ -1,5 +1,5 @@
 # Yamlinc
-Crate a composed YAML file using $include tag. 
+Create a composed YAML file using $include tag. 
 
 ## Simple usage
 
