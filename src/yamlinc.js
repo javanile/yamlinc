@@ -8,20 +8,28 @@ var fs = require("fs"),
     realpath = require("fs").realpathSync,
     dirname = require("path").dirname,
     join = require("path").join,
+    merge = require("deepmerge"),
     yamljs = require("yamljs"),
     helpers = require("./helpers");
 
-var watcher = require("chokidar").watch("./**/*.yml", {
-    persistent: true,
-    usePolling: true
-});
+var chokidar = require("chokidar");
 
 module.exports = {
 
     /**
      *
      */
+    mute: false,
+
+    /**
+     *
+     */
     watcherEnabled: false,
+
+    /**
+     *
+     */
+    spawnRunning: false,
 
     /**
      * Command line entry-point.
@@ -32,6 +40,17 @@ module.exports = {
     run: function(args, callback) {
         if (typeof args == "undefined" || !args || args.length === 0) {
             return helpers.error("Arguments error", "type: yamlinc --help");
+        }
+
+        //
+        var options = {
+            '--mute': 'setMute'
+        }
+        for (option in options) {
+            if (args.indexOf(option) > -1) {
+                this[options[option]](args);
+                args.splice(args.indexOf(option), 1);
+            }
         }
 
         //
@@ -61,18 +80,10 @@ module.exports = {
         }
 
         //
-        if (!fs.existsSync(file)) {
-            return helpers.error("File error", "file '"+file+"' not found.");
-        }
+        var fileInc = file.replace(/\.yml$/, '.inc.yml');
 
         // Compile yaml files
-        helpers.info("Analize file", file);
-        var data = this.resolve(file);
-
-        // Save compiled single file
-        var fileInc = file.replace(/\.yml$/, '.inc.yml');
-        helpers.info("Compile file", fileInc);
-        fs.writeFileSync(fileInc, yamljs.stringify(data, 10));
+        this.compile(file, fileInc);
     },
 
     /**
@@ -84,10 +95,11 @@ module.exports = {
     resolve: function(file, includeTag)
     {
         if (typeof includeTag === "undefined") { includeTag = '$include'; }
+        var base = dirname(file);
         var path = dirname(realpath(file));
         var data = yamljs.load(file);
-        this.recursiveResolve(data, path, includeTag);
-        return data;
+        var full = this.recursiveResolve(data, path, base, includeTag);
+        return full;
     },
 
     /**
@@ -97,7 +109,7 @@ module.exports = {
      * @param string $path       base path for relative inclusion
      * @param string $includeTag tag to include file
      */
-    recursiveResolve: function(data, path, includeTag) {
+    recursiveResolve: function(data, path, base, includeTag) {
         if (typeof data !== 'object') {
             return;
         }
@@ -105,31 +117,33 @@ module.exports = {
         for (var key in data) {
             if (key === includeTag) {
                 if (typeof data[key] === "string" && data[key]) {
-                    file = path + '/' + data[key];
+                    file = base + '/' + data[key];
                     if (file && fs.existsSync(file)) {
-                        helpers.info("Include file", realpath(file));
+                        helpers.info("Include", file);
                         var include = this.resolve(file, includeTag);
-                        includes = Object.assign(includes, include);
+                        includes = merge(includes, include);
                     }
                 } else if (typeof data[key] === "object") {
                     for (var index in data[key]) {
-                        file = path + '/' + data[key][index];
+                        file = base + '/' + data[key][index];
                         if (file && fs.existsSync(file)) {
-                            helpers.info("Include file", realpath(file));
+                            helpers.info("Include", file);
                             var include = this.resolve(file, includeTag);
-                            includes = Object.assign(includes, include);
+                            includes = merge(includes, include);
                         }
                     }
                 }
                 delete data[includeTag];
                 continue;
             }
-            this.recursiveResolve(data[key], path, includeTag);
+            this.recursiveResolve(data[key], path, base, includeTag);
         }
 
         if (includes && Object.keys(includes).length) {
-            data = Object.assign(data, includes);
+            data = merge(data, includes);
         }
+
+        return data;
     },
 
     /**
@@ -144,47 +158,82 @@ module.exports = {
         for (var i in args) {
             if (!args.hasOwnProperty(i)) { continue; }
             if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
-                file = realpath(args[i]);
+                file = args[i];
                 fileInc = file.replace(/\.yml$/, '.inc.yml');
                 args[i] = fileInc; break;
             }
         }
 
-        //
-        watcher
-            .on('add', function(change) { yamlinc.handleFileChange(change, file, fileInc); })
-            .on('change', function(change) { yamlinc.handleFileChange(change, file, fileInc); })
-            .on('unlink', function(change) { yamlinc.handleFileChange(change, file, fileInc); });
+        var watcher = chokidar.watch("./**/*.yml", {
+            persistent: true,
+            usePolling: true
+        });
 
-        //
-        this.directCompile(file, fileInc);
+        this.compile(file, fileInc);
 
-        //
         var cmd = args.shift();
+
+        watcher
+            //.on('add', function(change) { yamlinc.handleFileChange(change, file, fileInc, cmd, args); })
+            .on('change', function(change) { yamlinc.handleFileChange(change, file, fileInc, cmd, args); })
+            .on('unlink', function(change) { yamlinc.handleFileChange(change, file, fileInc, cmd, args); });
+
         setTimeout(function(){
             yamlinc.watcherEnabled = true;
-            helpers.info("Command exec", cmd + " " + args.join(" "));
-            helpers.spawn(cmd, args);
+            yamlinc.spawnLoop(cmd, args);
         }, 1000);
     },
 
     /**
      *
      */
-    handleFileChange: function (change, file, fileInc) {
-        if (!this.watcherEnabled || change.match(/\.inc\.yml$/)) { return; }
-        helpers.info('Changed file', realpath(change));
-        this.directCompile(file, fileInc);
+    spawnLoop: function (cmd, args) {
+        if (this.spawnRunning) { return; }
+
+        var yamlinc = this;
+        this.spawnRunning = true;
+        helpers.info('Command', cmd + ' ' + args.join(' '));
+        helpers.spawn(cmd, args, function(){
+            yamlinc.spawnRunning = false;
+        });
     },
+
 
     /**
      *
      */
-    directCompile: function (file, fileInc) {
-        helpers.info("Analize file", file);
+    handleFileChange: function (change, file, fileInc, cmd, args) {
+        if (!this.watcherEnabled || change.match(/\.inc\.yml$/)) { return; }
+        helpers.info('Changed file', change);
+        this.compile(file, fileInc);
+        if (!this.spawnRunning) {
+            this.spawnLoop(cmd, args);
+        }
+    },
+
+    /**
+     * Compile Yaml file
+     */
+    compile: function (file, fileInc) {
+        if (!fs.existsSync(file)) {
+            return helpers.error("File error", "file '"+file+"' not found.");
+        }
+
+        //
+        helpers.info("Analize", file);
         var data = this.resolve(file);
-        helpers.info("Compile file", fileInc);
+        helpers.info("Compile", fileInc);
         fs.writeFileSync(fileInc, yamljs.stringify(data, 10));
+    },
+
+    /**
+     * Get sotware help.
+     *
+     * @param args
+     */
+    setMute: function (args) {
+        this.mute = true;
+        helpers.mute = true;
     },
 
     /**

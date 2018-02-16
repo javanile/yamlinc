@@ -10,9 +10,9 @@ var fs = require("fs"),
 
 module.exports = {
     /**
-     * Silent print info/error message
+     * Mute print info/error message
      */
-    silent: false,
+    mute: false,
 
     /**
      * Print error message.
@@ -20,7 +20,7 @@ module.exports = {
      * @param msg
      */
     error: function (msg, info) {
-        if (this.silent) { return; }
+        if (this.mute) { return; }
         return console.log(col.red.bold(msg + " >>"), col.white(info));
     },
 
@@ -30,7 +30,7 @@ module.exports = {
      * @param msg
      */
     info: function (msg, info) {
-        if (this.silent) { return; }
+        if (this.mute) { return; }
         console.log(col.yellow.bold(msg + " >>"), col.white(info));
     },
 
@@ -39,25 +39,26 @@ module.exports = {
      * @param cmd
      * @param args
      */
-    spawn: function (cmd, args) {
+    spawn: function (cmd, args, cb) {
         var helpers = this;
 
         // Running command
         var wrapper = spawn(cmd, args);
 
         // Attach stdout handler
-        wrapper.stdout.on("data", function (data) {
+        wrapper.stdout.on('data', function (data) {
             return process.stdout.write(data.toString());
         });
 
         // Attach stderr handler
-        wrapper.stderr.on("data", function (data) {
+        wrapper.stderr.on('data', function (data) {
             return process.stdout.write(data.toString());
         });
 
         // Attach exit handler
-        wrapper.on("exit", function (code) {
-            return helpers.info("Command exit", code);
+        wrapper.on('exit', function (code) {
+            helpers.info('Command', 'exit code ' + code);
+            return typeof cb == 'function' ? cb() : null;
         });
     }
 };
