@@ -219,7 +219,7 @@ module.exports = {
      */
     handleFileChange: function (change, file, fileInc, cmd, args) {
         if (!this.watcherEnabled || change.match(/\.inc\.yml$/)) { return; }
-        helpers.info('Changed file', change);
+        helpers.info('Changed', change);
         this.compile(file, fileInc);
         if (!this.spawnRunning) {
             this.spawnLoop(cmd, args);
