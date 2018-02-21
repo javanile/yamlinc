@@ -7,10 +7,12 @@
 var fs = require("fs"),
     realpath = require("fs").realpathSync,
     dirname = require("path").dirname,
+    basename = require("path").basename,
     join = require("path").join,
     merge = require("deepmerge"),
     yamljs = require("yamljs"),
-    helpers = require("./helpers");
+    helpers = require("./helpers"),
+    EOL = require('os').EOL;
 
 var chokidar = require("chokidar");
 
@@ -37,7 +39,7 @@ module.exports = {
      * @param {array} args a list of arguments
      * @returns {string}
      */
-    run: function(args, callback) {
+    run: function (args, callback) {
         if (typeof args == "undefined" || !args || args.length === 0) {
             return helpers.error("Arguments error", "type: yamlinc --help");
         }
@@ -68,9 +70,13 @@ module.exports = {
         // looking for file in parameters
         var file = null;
         for (var i in args) {
-            if (!args.hasOwnProperty(i)) { continue; }
+            if (!args.hasOwnProperty(i)) {
+                continue;
+            }
             if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
-                file = args[i]; args.splice(i, 1); break;
+                file = args[i];
+                args.splice(i, 1);
+                break;
             }
         }
 
@@ -80,10 +86,18 @@ module.exports = {
         }
 
         //
-        var fileInc = file.replace(/\.yml$/, '.inc.yml');
+        var fileInc = this.getFileInc(file);
 
         // Compile yaml files
         this.compile(file, fileInc);
+    },
+
+    /**
+     *
+     */
+    getFileInc: function (file) {
+        //return join(process.cwd(), basename(file).replace(/\.yml$/, '.inc.yml'));
+        return basename(file).replace(/\.yml$/, '.inc.yml');
     },
 
     /**
@@ -159,8 +173,9 @@ module.exports = {
             if (!args.hasOwnProperty(i)) { continue; }
             if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
                 file = args[i];
-                fileInc = file.replace(/\.yml$/, '.inc.yml');
-                args[i] = fileInc; break;
+                fileInc = this.getFileInc(file);
+                args[i] = fileInc;
+                break;
             }
         }
 
@@ -222,8 +237,16 @@ module.exports = {
         //
         helpers.info("Analize", file);
         var data = this.resolve(file);
+        var disclaimer = [
+            "## --------------------",
+            "## DON'T EDIT THIS FILE",
+            "## --------------------",
+            "## Engine: " + this.getVersion(),
+            "## Source: " + file,
+        ];
+
         helpers.info("Compile", fileInc);
-        fs.writeFileSync(fileInc, yamljs.stringify(data, 10));
+        fs.writeFileSync(fileInc, disclaimer.join(EOL) + EOL + EOL + yamljs.stringify(data, 10));
     },
 
     /**
