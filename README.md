@@ -4,7 +4,7 @@ Create a composed YAML file using $include tag.
 ## Simple usage
 
 1. Install global yamlinc command-line utility
-```
+```bash
 $ npm install yamlinc -g
 ```
 
