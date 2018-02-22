@@ -1,6 +1,6 @@
 {
     "name": "yamlinc",
-    "version": "0.0.51",
+    "version": "0.0.52",
     "license": "MIT",
     "author": {
         "name": "Francesco Bianco",
@@ -25,6 +25,7 @@
     "dependencies": {
         "chokidar": "^1.6.1",
         "colors": "^1.1.2",
+        "cuid": "^2.1.0",
         "deepmerge": "^2.0.1",
         "yamljs": "^0.3.0"
     }

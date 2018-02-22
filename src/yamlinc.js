@@ -12,6 +12,7 @@ var fs = require("fs"),
     merge = require("deepmerge"),
     yamljs = require("yamljs"),
     helpers = require("./helpers"),
+    cuid = require('cuid'),
     EOL = require('os').EOL;
 
 var chokidar = require("chokidar");
@@ -32,6 +33,16 @@ module.exports = {
      *
      */
     spawnRunning: false,
+
+    /**
+     *
+     */
+    includeTag: '$include',
+
+    /**
+     *
+     */
+    escapeTag: '\\$include',
 
     /**
      * Command line entry-point.
@@ -59,7 +70,8 @@ module.exports = {
         var commands = {
             '--help': 'getHelp',
             '--version': 'getVersion',
-            '--watch': 'runCommandWatcher'
+            '--watch': 'runCommandWatch',
+            '--exec': 'runCommandExec'
         }
         for (command in commands) {
             if (args.indexOf(command) > -1) {
@@ -103,58 +115,61 @@ module.exports = {
     /**
      *
      * @param file
-     * @param includeTag
      * @returns {*}
      */
-    resolve: function(file, includeTag)
+    resolve: function(file)
     {
-        if (typeof includeTag === "undefined") { includeTag = '$include'; }
+        var yamlinc = this;
         var base = dirname(file);
-        var path = dirname(realpath(file));
-        var data = yamljs.load(file);
-        var full = this.recursiveResolve(data, path, base, includeTag);
-        return full;
+        var code = fs.readFileSync(file).toString()
+            .replace(this.getRegExpIncludeTag(), function (tag) {
+                return tag.replace(yamlinc.includeTag, yamlinc.includeTag + '_' + cuid());
+            });
+        var data = yamljs.parse(code);
+
+        this.recursiveResolve(data, base);
+
+        return data;
     },
 
     /**
      * Walk through array and find include tag.
      *
      * @param array  $yaml       reference of an array
-     * @param string $path       base path for relative inclusion
      * @param string $includeTag tag to include file
      */
-    recursiveResolve: function(data, path, base, includeTag) {
+    recursiveResolve: function(data, base) {
         if (typeof data !== 'object') {
             return;
         }
         var includes = {};
         for (var key in data) {
-            if (key === includeTag) {
+            if (this.isKeyMatchIncludeTag(key)) {
                 if (typeof data[key] === "string" && data[key]) {
                     file = base + '/' + data[key];
                     if (file && fs.existsSync(file)) {
                         helpers.info("Include", file);
-                        var include = this.resolve(file, includeTag);
-                        includes = merge(includes, include);
+                        var include = this.resolve(file);
+                        includes = Object.assign(includes, merge(includes, include));
                     }
                 } else if (typeof data[key] === "object") {
                     for (var index in data[key]) {
                         file = base + '/' + data[key][index];
                         if (file && fs.existsSync(file)) {
                             helpers.info("Include", file);
-                            var include = this.resolve(file, includeTag);
-                            includes = merge(includes, include);
+                            var include = this.resolve(file);
+                            includes = Object.assign(includes, merge(includes, include));
                         }
                     }
                 }
-                delete data[includeTag];
+                delete data[key];
                 continue;
             }
-            this.recursiveResolve(data[key], path, base, includeTag);
+            this.recursiveResolve(data[key], base);
         }
 
         if (includes && Object.keys(includes).length) {
-            data = merge(data, includes);
+            data = Object.assign(data, merge(data, includes));
         }
 
         return data;
@@ -163,7 +178,7 @@ module.exports = {
     /**
      *
      */
-    runCommandWatcher: function (args) {
+    runCommandWatch: function (args) {
         var yamlinc = this;
         args.splice(args.indexOf("--watch"), 1);
 
@@ -189,14 +204,46 @@ module.exports = {
         var cmd = args.shift();
 
         watcher
-            //.on('add', function(change) { yamlinc.handleFileChange(change, file, fileInc, cmd, args); })
             .on('change', function(change) { yamlinc.handleFileChange(change, file, fileInc, cmd, args); })
             .on('unlink', function(change) { yamlinc.handleFileChange(change, file, fileInc, cmd, args); });
+
+        setTimeout(function() {
+            watcher.on('add', function(change) {
+                yamlinc.handleFileChange(change, file, fileInc, cmd, args);
+            });
+        }, 15000);
 
         setTimeout(function(){
             yamlinc.watcherEnabled = true;
             yamlinc.spawnLoop(cmd, args);
         }, 1000);
+    },
+
+    /**
+     *
+     */
+    runCommandExec: function (args) {
+        var yamlinc = this;
+        args.splice(args.indexOf("--exec"), 1);
+
+        var file = null;
+        var fileInc = null;
+        for (var i in args) {
+            if (!args.hasOwnProperty(i)) { continue; }
+            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
+                file = args[i];
+                fileInc = this.getFileInc(file);
+                args[i] = fileInc;
+                break;
+            }
+        }
+
+        this.compile(file, fileInc);
+
+        var cmd = args.shift();
+
+        helpers.info('Command', cmd + ' ' + args.join(' '));
+        helpers.spawn(cmd, args);
     },
 
     /**
@@ -247,6 +294,23 @@ module.exports = {
 
         helpers.info("Compile", fileInc);
         fs.writeFileSync(fileInc, disclaimer.join(EOL) + EOL + EOL + yamljs.stringify(data, 10));
+    },
+
+    /**
+     *
+     */
+    getRegExpIncludeTag: function () {
+        return new RegExp('^[ \\t]*' + this.escapeTag + '[ \\t]*:', 'gmi');
+    },
+
+    /**
+     *
+     * @param key
+     * @param includeTag
+     * @returns {Array|{index: number, input: string}|*}
+     */
+    isKeyMatchIncludeTag: function (key) {
+        return key.match(new RegExp('^' + this.escapeTag + '_[a-z0-9]{25}$'));
     },
 
     /**

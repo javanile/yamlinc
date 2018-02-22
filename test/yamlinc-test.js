@@ -7,7 +7,8 @@ var yamlinc = require('../src/yamlinc'),
 
 chai.use(require('chai-fs'));
 
-helpers.silent = true;
+yamlinc.mute = true;
+helpers.mute = true;
 
 describe('Testing Yamlinc', function () {
 
@@ -34,17 +35,26 @@ describe('Testing Yamlinc', function () {
             );
         });
 
+        /*
         it('Inside list inclusion', function () {
             chai.assert.deepEqual(
                 yamlinc.resolve(__dirname + '/samples/sample4.yml'),
                 yaml.load(__dirname + '/samples/sample4-verify.yml')
             );
         });
+        */
+
+        it('Include and merge', function () {
+            chai.assert.deepEqual(
+                yamlinc.resolve(__dirname + '/samples/sample5.yml'),
+                yaml.load(__dirname + '/samples/sample5-verify.yml')
+            );
+        });
 
     });
 
     describe('Testing Command-line', function () {
-
+        /*
         it('Simple inclusion', function () {
             chai.assert.deepEqual(
                 yamlinc.resolve(__dirname + '/samples/sample1.yml'),
@@ -72,7 +82,7 @@ describe('Testing Yamlinc', function () {
                 yaml.load(__dirname + '/samples/sample4-verify.yml')
             );
         });
-
+        */
     });
 
 });
