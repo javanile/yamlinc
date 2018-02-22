@@ -10,7 +10,7 @@ var fs = require("fs"),
     basename = require("path").basename,
     join = require("path").join,
     merge = require("deepmerge"),
-    yamljs = require("yamljs"),
+    yamljs = require("js-yaml"),
     helpers = require("./helpers"),
     cuid = require('cuid'),
     EOL = require('os').EOL;
@@ -125,7 +125,7 @@ module.exports = {
             .replace(this.getRegExpIncludeTag(), function (tag) {
                 return tag.replace(yamlinc.includeTag, yamlinc.includeTag + '_' + cuid());
             });
-        var data = yamljs.parse(code);
+        var data = yamljs.safeLoad(code);
 
         this.recursiveResolve(data, base);
 
@@ -293,7 +293,7 @@ module.exports = {
         ];
 
         helpers.info("Compile", fileInc);
-        fs.writeFileSync(fileInc, disclaimer.join(EOL) + EOL + EOL + yamljs.stringify(data, 10));
+        fs.writeFileSync(fileInc, disclaimer.join(EOL) + EOL + EOL + yamljs.safeDump(data));
     },
 
     /**

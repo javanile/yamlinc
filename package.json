@@ -1,6 +1,6 @@
 {
     "name": "yamlinc",
-    "version": "0.0.52",
+    "version": "0.0.53",
     "license": "MIT",
     "author": {
         "name": "Francesco Bianco",
@@ -27,6 +27,6 @@
         "colors": "^1.1.2",
         "cuid": "^2.1.0",
         "deepmerge": "^2.0.1",
-        "yamljs": "^0.3.0"
+        "js-yaml": "^3.10.0"
     }
 }
