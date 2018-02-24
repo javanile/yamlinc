@@ -150,7 +150,9 @@ module.exports = {
                     if (file && fs.existsSync(file)) {
                         helpers.info("Include", file);
                         var include = this.resolve(file);
-                        includes = Object.assign(includes, merge(includes, include));
+                        if (include) {
+                            includes = Object.assign(includes, merge(includes, include));
+                        }
                     }
                 } else if (typeof data[key] === "object") {
                     for (var index in data[key]) {
@@ -158,7 +160,9 @@ module.exports = {
                         if (file && fs.existsSync(file)) {
                             helpers.info("Include", file);
                             var include = this.resolve(file);
-                            includes = Object.assign(includes, merge(includes, include));
+                            if (include) {
+                                includes = Object.assign(includes, merge(includes, include));
+                            }
                         }
                     }
                 }
