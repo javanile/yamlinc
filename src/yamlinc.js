@@ -147,7 +147,7 @@ module.exports = {
             if (this.isKeyMatchIncludeTag(key)) {
                 if (typeof data[key] === "string" && data[key]) {
                     file = base + '/' + data[key];
-                    if (file && fs.existsSync(file)) {
+                    if (helpers.fileExists(file)) {
                         helpers.info("Include", file);
                         var include = this.resolve(file);
                         if (include) {
@@ -157,7 +157,7 @@ module.exports = {
                 } else if (typeof data[key] === "object") {
                     for (var index in data[key]) {
                         file = base + '/' + data[key][index];
-                        if (file && fs.existsSync(file)) {
+                        if (helpers.fileExists(file)) {
                             helpers.info("Include", file);
                             var include = this.resolve(file);
                             if (include) {
@@ -280,7 +280,7 @@ module.exports = {
      * Compile Yaml file
      */
     compile: function (file, fileInc) {
-        if (!fs.existsSync(file)) {
+        if (!helpers.fileExists(file)) {
             return helpers.error('File error', "file '" + file + "' not found.");
         }
 

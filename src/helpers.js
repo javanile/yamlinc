@@ -9,6 +9,7 @@ var fs = require("fs"),
     spawn = require("child_process").spawn;
 
 module.exports = {
+
     /**
      * Mute print info/error message
      */
@@ -60,5 +61,14 @@ module.exports = {
             helpers.info('Command', 'exit code ' + code);
             return typeof cb == 'function' ? cb() : null;
         });
+    },
+
+    /**
+     *
+     * @param file
+     * @returns {*}
+     */
+    fileExists: function(file) {
+        return file && fs.existsSync(file) && fs.lstatSync(file).isFile();
     }
 };
