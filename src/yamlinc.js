@@ -260,7 +260,6 @@ module.exports = {
         });
     },
 
-
     /**
      *
      */
@@ -278,10 +277,10 @@ module.exports = {
      */
     compile: function (file, fileInc) {
         if (!fs.existsSync(file)) {
-            return helpers.error("File error", "file '"+file+"' not found.");
+            return helpers.error('File error', "file '" + file + "' not found.");
         }
 
-        //
+        // Compile and prepare disclaimer
         helpers.info("Analize", file);
         var data = this.resolve(file);
         var disclaimer = [
@@ -292,8 +291,10 @@ module.exports = {
             "## Source: " + file,
         ];
 
+        // Print-out compiled code into file
         helpers.info("Compile", fileInc);
-        fs.writeFileSync(fileInc, disclaimer.join(EOL) + EOL + EOL + yamljs.safeDump(data));
+        var code = data ? yamljs.safeDump(data) : 'empty: true';
+        fs.writeFileSync(fileInc, disclaimer.join(EOL) + EOL + EOL + code);
     },
 
     /**
