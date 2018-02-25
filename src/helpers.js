@@ -6,7 +6,8 @@
 
 var fs = require("fs"),
     col = require("colors"),
-    spawn = require("child_process").spawn;
+    spawn = require("child_process").spawn,
+    basename = require("path").basename;
 
 module.exports = {
 
@@ -70,5 +71,51 @@ module.exports = {
      */
     fileExists: function(file) {
         return file && fs.existsSync(file) && fs.lstatSync(file).isFile();
-    }
+    },
+
+    /**
+     *
+     * @param args
+     * @returns {*}
+     */
+    getInputFile: function (args) {
+        var file = null;
+        for (var i in args) {
+            if (!args.hasOwnProperty(i)) {
+                continue;
+            }
+            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
+                file = args[i];
+                args.splice(i, 1);
+                break;
+            }
+        }
+        return file;
+    },
+
+    getInputFiles: function (args) {
+        var file = null;
+        var fileInc = null;
+        for (var i in args) {
+            if (!args.hasOwnProperty(i)) { continue; }
+            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
+                file = args[i];
+                fileInc = this.getFileInc(file);
+                args[i] = fileInc;
+                break;
+            }
+        }
+        return {
+            file: file,
+            fileInc: fileInc
+        };
+    },
+
+    /**
+     *
+     */
+    getFileInc: function (file) {
+        //return join(process.cwd(), basename(file).replace(/\.yml$/, '.inc.yml'));
+        return basename(file).replace(/\.yml$/, '.inc.yml');
+    },
 };

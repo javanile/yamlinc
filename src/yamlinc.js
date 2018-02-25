@@ -80,17 +80,7 @@ module.exports = {
         }
 
         // looking for file in parameters
-        var file = null;
-        for (var i in args) {
-            if (!args.hasOwnProperty(i)) {
-                continue;
-            }
-            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
-                file = args[i];
-                args.splice(i, 1);
-                break;
-            }
-        }
+        var file = helpers.getInputFile(args);
 
         //
         if (!file) {
@@ -98,18 +88,10 @@ module.exports = {
         }
 
         //
-        var fileInc = this.getFileInc(file);
+        var fileInc = helpers.getFileInc(file);
 
         // Compile yaml files
         this.compile(file, fileInc);
-    },
-
-    /**
-     *
-     */
-    getFileInc: function (file) {
-        //return join(process.cwd(), basename(file).replace(/\.yml$/, '.inc.yml'));
-        return basename(file).replace(/\.yml$/, '.inc.yml');
     },
 
     /**
@@ -142,28 +124,15 @@ module.exports = {
         if (typeof data !== 'object') {
             return;
         }
+
         var includes = {};
         for (var key in data) {
             if (this.isKeyMatchIncludeTag(key)) {
                 if (typeof data[key] === "string" && data[key]) {
-                    file = base + '/' + data[key];
-                    if (helpers.fileExists(file)) {
-                        helpers.info("Include", file);
-                        var include = this.resolve(file);
-                        if (include) {
-                            includes = Object.assign(includes, merge(includes, include));
-                        }
-                    }
+                    includes = this.recursiveInclude(base + '/' + data[key], includes);
                 } else if (typeof data[key] === "object") {
                     for (var index in data[key]) {
-                        file = base + '/' + data[key][index];
-                        if (helpers.fileExists(file)) {
-                            helpers.info("Include", file);
-                            var include = this.resolve(file);
-                            if (include) {
-                                includes = Object.assign(includes, merge(includes, include));
-                            }
-                        }
+                        includes = this.recursiveInclude(base + '/' + data[key][index], includes);
                     }
                 }
                 delete data[key];
@@ -181,39 +150,46 @@ module.exports = {
 
     /**
      *
+     * @param file
+     * @param includes
+     * @returns {*}
+     */
+    recursiveInclude: function (file, includes) {
+        if (helpers.fileExists(file)) {
+            helpers.info("Include", file);
+            var include = this.resolve(file);
+            if (include) {
+                includes = Object.assign(includes, merge(includes, include));
+            }
+        }
+        return includes;
+    },
+
+    /**
+     *
      */
     runCommandWatch: function (args) {
         var yamlinc = this;
-        args.splice(args.indexOf("--watch"), 1);
+        args.splice(args.indexOf('--watch'), 1);
 
-        var file = null;
-        var fileInc = null;
-        for (var i in args) {
-            if (!args.hasOwnProperty(i)) { continue; }
-            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
-                file = args[i];
-                fileInc = this.getFileInc(file);
-                args[i] = fileInc;
-                break;
-            }
-        }
+        var input = helpers.getInputFiles(args);
 
-        var watcher = chokidar.watch("./**/*.yml", {
+        var watcher = chokidar.watch('./**/*.yml', {
             persistent: true,
             usePolling: true
         });
 
-        this.compile(file, fileInc);
+        this.compile(input.file, input.fileInc);
 
         var cmd = args.shift();
 
         watcher
-            .on('change', function(change) { yamlinc.handleFileChange(change, file, fileInc, cmd, args); })
-            .on('unlink', function(change) { yamlinc.handleFileChange(change, file, fileInc, cmd, args); });
+            .on('change', function(change) { yamlinc.handleFileChange(change, input, cmd, args); })
+            .on('unlink', function(change) { yamlinc.handleFileChange(change, input, cmd, args); });
 
         setTimeout(function() {
             watcher.on('add', function(change) {
-                yamlinc.handleFileChange(change, file, fileInc, cmd, args);
+                yamlinc.handleFileChange(change, input, cmd, args);
             });
         }, 15000);
 
@@ -267,10 +243,10 @@ module.exports = {
     /**
      *
      */
-    handleFileChange: function (change, file, fileInc, cmd, args) {
+    handleFileChange: function (change, input, cmd, args) {
         if (!this.watcherEnabled || change.match(/\.inc\.yml$/)) { return; }
         helpers.info('Changed', change);
-        this.compile(file, fileInc);
+        this.compile(input.file, input.fileInc);
         if (!this.spawnRunning) {
             this.spawnLoop(cmd, args);
         }

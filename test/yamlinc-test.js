@@ -2,8 +2,9 @@
 
 var yamlinc = require('../src/yamlinc'),
     helpers = require('../src/helpers'),
-    yaml = require('yamljs'),
-    chai = require('chai');
+    yaml = require('js-yaml'),
+    chai = require('chai'),
+    fs = require('fs');
 
 chai.use(require('chai-fs'));
 
@@ -17,21 +18,21 @@ describe('Testing Yamlinc', function () {
         it('Simple inclusion', function () {
             chai.assert.deepEqual(
                 yamlinc.resolve(__dirname + '/samples/sample1.yml'),
-                yaml.load(__dirname + '/samples/sample1-verify.yml')
+                yaml.safeLoad(fs.readFileSync(__dirname + '/samples/sample1-verify.yml'))
             );
         });
 
         it('Large inclusion', function () {
             chai.assert.deepEqual(
                 yamlinc.resolve(__dirname + '/samples/sample2.yml'),
-                yaml.load(__dirname + '/samples/sample2-verify.yml')
+                yaml.safeLoad(fs.readFileSync(__dirname + '/samples/sample2-verify.yml'))
             );
         });
 
         it('Multiple inclusion', function () {
             chai.assert.deepEqual(
                 yamlinc.resolve(__dirname + '/samples/sample3.yml'),
-                yaml.load(__dirname + '/samples/sample3-verify.yml')
+                yaml.safeLoad(fs.readFileSync(__dirname + '/samples/sample3-verify.yml'))
             );
         });
 
@@ -47,7 +48,7 @@ describe('Testing Yamlinc', function () {
         it('Include and merge', function () {
             chai.assert.deepEqual(
                 yamlinc.resolve(__dirname + '/samples/sample5.yml'),
-                yaml.load(__dirname + '/samples/sample5-verify.yml')
+                yaml.safeLoad(fs.readFileSync(__dirname + '/samples/sample5-verify.yml'))
             );
         });
 
