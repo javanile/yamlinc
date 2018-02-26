@@ -11,7 +11,7 @@ Create a composed YAML file using $include tag.
 
 **STEP 1** - Install global yamlinc command-line utility
 ```bash
-$ npm install yamlinc -g
+$ npm install -g yamlinc
 ```
 
 **STEP 2** - Create "my_swagger_doc.yml" and split it into multiple file  
