@@ -65,7 +65,7 @@ $ yamlinc --exec docker-compose -f docker-compose.yml
 ```
 
 ## Create your scenario
-If you have custom schenario with YAML file please place an issues on the follow page
+If you have custom scenario with YAML file please place an issues on the follow page
 
 https://github.com/javanile/yamlinc/issues
 
