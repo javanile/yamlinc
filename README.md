@@ -9,12 +9,12 @@ Create a composed YAML file using $include tag.
 
 ## Simple usage
 
-**STEP 1** - Install global yamlinc command-line utility
+**STEP #1** - Install global yamlinc command-line utility
 ```bash
 $ npm install -g yamlinc
 ```
 
-**STEP 2** - Create "my_swagger_doc.yml" and split it into multiple file  
+**STEP #2** - Create "my_swagger_doc.yml" and split it into multiple file  
 ```yaml
 ## file: my_swagger_doc.yml
 version: '2.0'
@@ -44,12 +44,12 @@ paths:
   post: ...
 ```
 
-**STEP 3** - Simply compile the entry point 'my_swagger_doc.yml'
+**STEP #3** - Simply compile the entry point 'my_swagger_doc.yml'
 ```bash
 $ yamlinc my_swagger_doc.yml
 ```
 
-**STEP 4** - Get your compiled file 'my_swagger_doc.inc.yml'
+**STEP #4** - Get your compiled file 'my_swagger_doc.inc.yml'
 > **NOTICE:** Ymalinc append '*.inc.yml' extension to compiled file.
 
 ## Development watcher
