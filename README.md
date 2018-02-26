@@ -1,4 +1,4 @@
-# yamlinc
+# Yamlinc
 Create a composed YAML file using $include tag. 
 
 [![NPM](https://nodei.co/npm/yamlinc.png?compact=true)](https://nodei.co/npm/yamlinc/)
