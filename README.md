@@ -1,6 +1,7 @@
 # Yamlinc
 Create a composed YAML file using $include tag. 
 
+[![NPM](https://nodei.co/npm/yamlinc.png?mini=true)](https://nodei.co/npm/yamlinc/)
 [![Build Status](https://travis-ci.org/javanile-bot/yamlinc.svg?branch=master)](https://travis-ci.org/javanile-bot/yamlinc)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/43662de1f27dc3629953/test_coverage)](https://codeclimate.com/github/javanile-bot/yamlinc/test_coverage)
 [![Maintainability](https://api.codeclimate.com/v1/badges/43662de1f27dc3629953/maintainability)](https://codeclimate.com/github/javanile-bot/yamlinc/maintainability)
