@@ -45,7 +45,7 @@ paths:
 ```
 
 **STEP 3** - Simply compile the entry point 'my_swagger_doc.yml'
-```
+```bash
 $ yamlinc my_swagger_doc.yml
 ```
 
@@ -55,14 +55,14 @@ $ yamlinc my_swagger_doc.yml
 ## Development watcher
 During development you need costantily updated compiled file by watching changes of dependences
 
-```
+```bash
 $ yamlinc --watch spectacle -d my_swagger_doc.yml
 ```
 
 ## Feed your .inc.yml file
 If your application need a copiled file as parameter you simple compound and feed 
 
-```
+```bash
 $ yamlinc --exec docker-compose -f docker-compose.yml
 ```
 
