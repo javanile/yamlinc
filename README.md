@@ -9,12 +9,12 @@ Create a composed YAML file using $include tag.
 
 ## Simple usage
 
-**STEP 1** - Install global yamlinc command-line utility
+**STEP #1** - Install global yamlinc command-line utility
 ```bash
-$ npm install yamlinc -g
+$ npm install -g yamlinc
 ```
 
-**STEP 2** - Create "my_swagger_doc.yml" and split it into multiple file  
+**STEP #2** - Create "my_swagger_doc.yml" and split it into multiple file  
 ```yaml
 ## file: my_swagger_doc.yml
 version: '2.0'
@@ -44,32 +44,32 @@ paths:
   post: ...
 ```
 
-**STEP 3** - Simply compile the entry point 'my_swagger_doc.yml'
-```
+**STEP #3** - Simply compile the entry point 'my_swagger_doc.yml'
+```bash
 $ yamlinc my_swagger_doc.yml
 ```
 
-**STEP 4** - Get your compiled file 'my_swagger_doc.inc.yml'
-> **NOTICE:** Ymalinc append '*.inc.yml' extension to compiled file.
+**STEP #4** - Get your compiled file 'my_swagger_doc.inc.yml'
+> **NOTICE:** Yamlinc append '*.inc.yml' extension to compiled file.
 
 ## Development watcher
 During development you need costantily updated compiled file by watching changes of dependences
 
-```
+```bash
 $ yamlinc --watch spectacle -d my_swagger_doc.yml
 ```
 
 ## Feed your .inc.yml file
 If your application need a copiled file as parameter you simple compound and feed 
 
-```
+```bash
 $ yamlinc --exec docker-compose -f docker-compose.yml
 ```
 
 ## Create your scenario
 If you have custom scenario with YAML file please place an issues on the follow page
 
-https://github.com/javanile/yamlinc/issues
+https://github.com/javanile/yamlinc/issues/new
 
 
 
