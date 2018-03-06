@@ -12,6 +12,7 @@ var fs = require("fs"),
     merge = require("deepmerge"),
     yamljs = require("js-yaml"),
     helpers = require("./helpers"),
+    values = require('object.values'),
     cuid = require('cuid'),
     EOL = require('os').EOL;
 
@@ -287,7 +288,7 @@ module.exports = {
         if (helpers.isNotEmptyObject(data)) {
             for (var key in data) {
                 if (helpers.isObjectizedArray(data[key])) {
-                    data[key] = Object.values(data[key]);
+                    data[key] = values(data[key]);
                     continue;
                 }
                 data[key] = this.recursiveSanitize(data[key]);
