@@ -110,6 +110,7 @@ module.exports = {
         var data = yamljs.safeLoad(code);
 
         this.recursiveResolve(data, base);
+        this.recursiveSanitize(data);
 
         return data;
     },
@@ -121,9 +122,7 @@ module.exports = {
      * @param string $includeTag tag to include file
      */
     recursiveResolve: function(data, base) {
-        if (typeof data !== 'object') {
-            return;
-        }
+        if (typeof data !== 'object') { return; }
 
         var includes = {};
         for (var key in data) {
@@ -141,7 +140,9 @@ module.exports = {
             this.recursiveResolve(data[key], base);
         }
 
-        if (includes && Object.keys(includes).length) {
+        if (helpers.isNotEmptyObject(includes)) {
+            data = Object.assign(data, merge(data, includes));
+        } else if (helpers.isNotEmptyArray(includes)) {
             data = Object.assign(data, merge(data, includes));
         }
 
@@ -158,7 +159,9 @@ module.exports = {
         if (helpers.fileExists(file)) {
             helpers.info("Include", file);
             var include = this.resolve(file);
-            if (include) {
+            if (helpers.isNotEmptyObject(include)) {
+                includes = Object.assign(includes, merge(includes, include));
+            } else if (helpers.isNotEmptyArray(include)) {
                 includes = Object.assign(includes, merge(includes, include));
             }
         }
@@ -275,6 +278,22 @@ module.exports = {
         helpers.info("Compile", fileInc);
         var code = data ? yamljs.safeDump(data) : 'empty: true';
         fs.writeFileSync(fileInc, disclaimer.join(EOL) + EOL + EOL + code);
+    },
+
+    /**
+     *
+     */
+    recursiveSanitize: function(data) {
+        if (helpers.isNotEmptyObject(data)) {
+            for (var key in data) {
+                if (helpers.isObjectizedArray(data[key])) {
+                    data[key] = Object.values(data[key]);
+                    continue;
+                }
+                data[key] = this.recursiveSanitize(data[key]);
+            }
+        }
+        return data;
     },
 
     /**

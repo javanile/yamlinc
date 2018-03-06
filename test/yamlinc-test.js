@@ -52,6 +52,13 @@ describe('Testing Yamlinc', function () {
             );
         });
 
+        it('Include array of objects', function () {
+            chai.assert.deepEqual(
+                yamlinc.resolve(__dirname + '/samples/sample6.yml'),
+                yaml.safeLoad(fs.readFileSync(__dirname + '/samples/sample6-verify.yml'))
+            );
+        });
+
     });
 
     describe('Testing Command-line', function () {

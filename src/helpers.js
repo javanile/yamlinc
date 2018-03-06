@@ -118,4 +118,39 @@ module.exports = {
         //return join(process.cwd(), basename(file).replace(/\.yml$/, '.inc.yml'));
         return basename(file).replace(/\.yml$/, '.inc.yml');
     },
+
+    /**
+     *
+     */
+    isNotEmptyObject: function (value) {
+        return value
+            && !Array.isArray(value)
+            && typeof value === 'object'
+            && Object.keys(value).length;
+    },
+
+    /**
+     *
+     */
+    isNotEmptyArray: function (value) {
+        return value
+            && Array.isArray(value)
+            && value.length > 0;
+    },
+
+    /**
+     *
+     * @param value
+     */
+    isObjectizedArray: function (value) {
+        if (this.isNotEmptyObject(value)) {
+            var i = 0;
+            for (var key in value) {
+                if (key !== ''+i) { return false; }
+                i++;
+            }
+            return true;
+        }
+        return false;
+    }
 };
