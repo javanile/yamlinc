@@ -1,0 +1,14 @@
+## --------------------
+## DON'T EDIT THIS FILE
+## --------------------
+## Engine: yamlinc@0.0.62
+## Source: /home/francesco/Develop/Scacchi/microbase.tk/node_modules/yamlinc/test/samples/sample5.Yaml
+
+test1:
+  a: null
+  b: 2
+  c: null
+test2:
+  a: null
+  b: 2
+  c: null

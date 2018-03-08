@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*!
- * dockerops
- * Copyright(c) 2016-2017 Javanile.org
+ * Yamlinc: v0.0.63
+ * Copyright(c) 2016-2018 Javanile.org
  * MIT Licensed
  */
 
@@ -9,7 +9,7 @@
 
 var fs = require("fs");
 var path = require("path");
-var local = path.join(process.cwd(), "node_modules/yamlinc/src/yamlinc.js");
+var local = "node_modules/yamlinc/src/yamlinc.js";
 var argv = process.argv.slice(2);
 var yamlinc = null;
 
@@ -19,6 +19,6 @@ if (!fs.existsSync(local)) {
     yamlinc = require(local);
 }
 
-yamlinc.run(argv, function (output) {
-    //console.log(output);
+yamlinc.run(argv, function (debug) {
+    //console.log(debug);
 });

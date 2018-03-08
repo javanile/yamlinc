@@ -1,5 +1,5 @@
 /*!
- * Yamlinc
+ * Yamlinc: v0.0.63
  * Copyright(c) 2016-2018 Javanile.org
  * MIT Licensed
  */
@@ -46,6 +46,38 @@ module.exports = {
     escapeTag: '\\$include',
 
     /**
+     *
+     */
+    extensions: ['yml', 'yaml'],
+
+    /**
+     *
+     */
+    extensionsRule: new RegExp('\\.(yml|yaml)$', 'i'),
+
+    /**
+     *
+     */
+    incExtensionsRule: new RegExp('\\.inc\\.(yml|yaml)$', 'i'),
+
+    /**
+     *
+     */
+    options: {
+        '--mute': 'setMute'
+    },
+
+    /**
+     *
+     */
+    commands: {
+        '--help': 'getHelp',
+        '--version': 'getVersion',
+        '--watch': 'runCommandWatch',
+        '--exec': 'runCommandExec'
+    },
+
+    /**
      * Command line entry-point.
      *
      * @param {array} args a list of arguments
@@ -53,46 +85,34 @@ module.exports = {
      */
     run: function (args, callback) {
         if (typeof args == "undefined" || !args || args.length === 0) {
-            return helpers.error("Arguments error", "type: yamlinc --help");
+            return helpers.error("Arguments error", "type: yamlinc --help", callback);
         }
 
-        //
-        var options = {
-            '--mute': 'setMute'
-        }
-        for (option in options) {
+        // handle command-line options
+        for (var option in this.options) {
             if (args.indexOf(option) > -1) {
-                this[options[option]](args);
-                args.splice(args.indexOf(option), 1);
+                this[this.options[option]](args);
             }
         }
 
-        //
-        var commands = {
-            '--help': 'getHelp',
-            '--version': 'getVersion',
-            '--watch': 'runCommandWatch',
-            '--exec': 'runCommandExec'
-        }
-        for (command in commands) {
+        // handle command-line commands
+        for (var command in this.commands) {
             if (args.indexOf(command) > -1) {
-                return this[commands[command]](args);
+                return this[this.commands[command]](args, callback);
             }
         }
 
-        // looking for file in parameters
-        var file = helpers.getInputFile(args);
-
-        //
+        // looking for file in arguments
+        var file = this.getInputFile(args);
         if (!file) {
-            return helpers.error("Arguments error", "missing file name.");
+            return helpers.error("Arguments error", "missing file name.", callback);
         }
 
-        //
-        var fileInc = helpers.getFileInc(file);
+        // generate name of .inc.yml output file
+        var incFile = this.getIncFile(file);
 
-        // Compile yaml files
-        this.compile(file, fileInc);
+        // compile yaml files
+        return this.compile(file, incFile, callback);
     },
 
     /**
@@ -100,8 +120,7 @@ module.exports = {
      * @param file
      * @returns {*}
      */
-    resolve: function(file)
-    {
+    resolve: function(file) {
         var yamlinc = this;
         var base = dirname(file);
         var code = fs.readFileSync(file).toString()
@@ -172,18 +191,26 @@ module.exports = {
     /**
      *
      */
-    runCommandWatch: function (args) {
+    runCommandWatch: function (args, callback) {
         var yamlinc = this;
         args.splice(args.indexOf('--watch'), 1);
 
-        var input = helpers.getInputFiles(args);
+        var input = this.getInputFiles(args);
+        if (!input) {
+            return helpers.error('File error', 'missing input file to watch.', callback);
+        }
 
-        var watcher = chokidar.watch('./**/*.yml', {
+        var match = [];
+        for (var i in this.extensions) {
+            match.push('./**/*.*');
+        }
+
+        var watcher = chokidar.watch(match, {
             persistent: true,
             usePolling: true
         });
 
-        this.compile(input.file, input.fileInc);
+        this.compile(input.file, input.incFile, callback);
 
         var cmd = args.shift();
 
@@ -206,23 +233,16 @@ module.exports = {
     /**
      *
      */
-    runCommandExec: function (args) {
+    runCommandExec: function (args, callback) {
         var yamlinc = this;
-        args.splice(args.indexOf("--exec"), 1);
+        args.splice(args.indexOf('--exec'), 1);
 
-        var file = null;
-        var fileInc = null;
-        for (var i in args) {
-            if (!args.hasOwnProperty(i)) { continue; }
-            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
-                file = args[i];
-                fileInc = this.getFileInc(file);
-                args[i] = fileInc;
-                break;
-            }
+        var input = this.getInputFiles(args);
+        if (!input) {
+            return helpers.error('File error', 'missing input file to exec.', callback);
         }
 
-        this.compile(file, fileInc);
+        this.compile(input.file, input.incFile, callback);
 
         var cmd = args.shift();
 
@@ -248,20 +268,29 @@ module.exports = {
      *
      */
     handleFileChange: function (change, input, cmd, args) {
-        if (!this.watcherEnabled || change.match(/\.inc\.yml$/)) { return; }
+        if (this.skipFileChange(change)) { return; }
         helpers.info('Changed', change);
-        this.compile(input.file, input.fileInc);
+        this.compile(input.file, input.incFile);
         if (!this.spawnRunning) {
             this.spawnLoop(cmd, args);
         }
     },
 
     /**
+     *
+     */
+    skipFileChange: function (change) {
+        return !this.watcherEnabled
+            || change.match(this.incExtensionsRule)
+            || !change.match(this.extensionsRule);
+    },
+
+    /**
      * Compile Yaml file
      */
-    compile: function (file, fileInc) {
+    compile: function (file, incFile, callback) {
         if (!helpers.fileExists(file)) {
-            return helpers.error('File error', "file '" + file + "' not found.");
+            return helpers.error('File error', "file '" + file + "' not found.", callback);
         }
 
         // Compile and prepare disclaimer
@@ -276,9 +305,13 @@ module.exports = {
         ];
 
         // Print-out compiled code into file
-        helpers.info("Compile", fileInc);
-        var code = data ? yamljs.safeDump(data) : 'empty: true';
-        fs.writeFileSync(fileInc, disclaimer.join(EOL) + EOL + EOL + code);
+        helpers.info("Compile", incFile);
+        var code = data ? yamljs.safeDump(data) : 'empty: true' + EOL;
+        fs.writeFileSync(incFile, disclaimer.join(EOL) + EOL + EOL + code);
+
+        // Trigger debugger callback
+        return helpers.isFunction(callback)
+            && callback({ file: file, incFile: incFile });
     },
 
     /**
@@ -315,13 +348,72 @@ module.exports = {
     },
 
     /**
-     * Get sotware help.
+     * Get input file to parse inside command-line arguments.
+     *
+     * @param args
+     * @returns {*}
+     */
+    getInputFile: function (args) {
+        for (var i in args) {
+            if (this.isArgumentInputFile(args, i)) {
+                var file = args[i];
+                args.splice(i, 1);
+                return file;
+            }
+        }
+    },
+
+    /**
+     *
+     * @param args
+     * @param i
+     * @returns {boolean}
+     */
+    isArgumentInputFile: function (args, i) {
+        return args.hasOwnProperty(i)
+            && args[i].charAt(0) != '-'
+            && args[i].match(this.extensionsRule);
+    },
+
+    /**
+     *
+     * @param args
+     * @returns {{file: *, incFile: *}}
+     */
+    getInputFiles: function (args) {
+        for (var i in args) {
+            if (this.isArgumentInputFile(args, i)) {
+                var file = args[i];
+                args[i] = this.getIncFile(file);
+                return { file: file, incFile: args[i] };
+            }
+        }
+    },
+
+    /**
+     * Get .inc.yml file base on input.
+     *
+     * @param file
+     * @returns {void|string}
+     */
+    getIncFile: function (file) {
+        for (var i in this.extensions) {
+            if (this.extensions.hasOwnProperty(i)) {
+                var rule = new RegExp('\\.(' + this.extensions[i] + ')$', 'i');
+                if (file.match(rule)) { return basename(file).replace(rule, '.inc.$1'); }
+            }
+        }
+    },
+
+    /**
+     * Set mute mode.
      *
      * @param args
      */
     setMute: function (args) {
-        this.mute = true;
+        args.splice(args.indexOf('--mute'), 1);
         helpers.mute = true;
+        this.mute = true;
     },
 
     /**

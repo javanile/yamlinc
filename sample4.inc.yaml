@@ -1,0 +1,16 @@
+## --------------------
+## DON'T EDIT THIS FILE
+## --------------------
+## Engine: yamlinc@0.0.62
+## Source: /home/francesco/Develop/Scacchi/microbase.tk/node_modules/yamlinc/test/samples/sample4.yaml
+
+game:
+  figures:
+    - $include: sample4-include1.yml
+    - fig2
+  kind:
+    - point-and-click
+    - new-age
+kind:
+  - point-and-click
+  - new-age
