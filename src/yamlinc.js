@@ -21,54 +21,56 @@ var chokidar = require("chokidar");
 module.exports = {
 
     /**
-     *
+     * Disable output print-out.
      */
     mute: false,
 
     /**
-     *
+     * Check watcher is running.
      */
-    watcherEnabled: false,
+    watchRunning: false,
 
     /**
-     *
+     * Check command spawn is running.
      */
     spawnRunning: false,
 
     /**
-     *
+     * Define the include tag.
      */
     includeTag: '$include',
 
     /**
-     *
+     * RegExp version of include tag.
      */
     escapeTag: '\\$include',
 
     /**
-     *
+     * Supported file extensions.
      */
     extensions: ['yml', 'yaml'],
 
     /**
-     *
+     * RegExp to catch supported files.
      */
     extensionsRule: new RegExp('\\.(yml|yaml)$', 'i'),
 
     /**
-     *
+     * RegExp to catch .inc.* files.
      */
     incExtensionsRule: new RegExp('\\.inc\\.(yml|yaml)$', 'i'),
 
     /**
-     *
+     * Supported options.
      */
     options: {
-        '--mute': 'setMute'
+        '-o': 'setOutput',
+        '--mute': 'setMute',
+        '--outout': 'setOutput',
     },
 
     /**
-     *
+     * Supported commands.
      */
     commands: {
         '--help': 'getHelp',
@@ -78,9 +80,19 @@ module.exports = {
     },
 
     /**
+     * Called for retrive internal debug.
+     *
+     * @name debugCallback
+     * @function
+     * @param {Object} debug information about the error
+     * @return undefined
+     */
+
+    /**
      * Command line entry-point.
      *
      * @param {array} args a list of arguments
+     * @param {debugCallback} callback retrieve debug information
      * @returns {string}
      */
     run: function (args, callback) {
@@ -116,23 +128,34 @@ module.exports = {
     },
 
     /**
+     * Load file and resolve all inclusion.
      *
-     * @param file
-     * @returns {*}
+     * @param file input file to resolve
+     * @returns {string} yaml code
      */
     resolve: function(file) {
-        var yamlinc = this;
-        var base = dirname(file);
-        var code = fs.readFileSync(file).toString()
-            .replace(this.getRegExpIncludeTag(), function (tag) {
-                return tag.replace(yamlinc.includeTag, yamlinc.includeTag + '_' + cuid());
-            });
-        var data = yamljs.safeLoad(code);
+        var base = dirname(file),
+            code = this.loadMetacode(file),
+            data = yamljs.safeLoad(code);
 
         this.recursiveResolve(data, base);
         this.recursiveSanitize(data);
 
         return data;
+    },
+
+    /**
+     * Retrive file yaml meta code.
+     *
+     * @param file input file to load
+     * @returns {string} yaml meta code
+     */
+    loadMetacode: function (file) {
+        var yamlinc = this;
+        return fs.readFileSync(file).toString()
+            .replace(this.getRegExpIncludeTag(), function (tag) {
+                return tag.replace(yamlinc.includeTag, yamlinc.includeTag + '_' + cuid());
+            });
     },
 
     /**
@@ -215,17 +238,17 @@ module.exports = {
         var cmd = args.shift();
 
         watcher
-            .on('change', function(change) { yamlinc.handleFileChange(change, input, cmd, args); })
-            .on('unlink', function(change) { yamlinc.handleFileChange(change, input, cmd, args); });
+            .on('change', function(file) { yamlinc.handleFileChange(file, input, cmd, args); })
+            .on('unlink', function(file) { yamlinc.handleFileChange(file, input, cmd, args); });
 
         setTimeout(function() {
-            watcher.on('add', function(change) {
-                yamlinc.handleFileChange(change, input, cmd, args);
+            watcher.on('add', function(file) {
+                yamlinc.handleFileChange(file, input, cmd, args);
             });
         }, 15000);
 
         setTimeout(function(){
-            yamlinc.watcherEnabled = true;
+            yamlinc.watchRunning = true;
             yamlinc.spawnLoop(cmd, args);
         }, 1000);
     },
@@ -265,11 +288,16 @@ module.exports = {
     },
 
     /**
+     * Handle file changes during watcher.
      *
+     * @param file
+     * @param input
+     * @param cmd
+     * @param args
      */
-    handleFileChange: function (change, input, cmd, args) {
-        if (this.skipFileChange(change)) { return; }
-        helpers.info('Changed', change);
+    handleFileChange: function (file, input, cmd, args) {
+        if (this.skipFileChange(file)) { return; }
+        helpers.info('Changed', file);
         this.compile(input.file, input.incFile);
         if (!this.spawnRunning) {
             this.spawnLoop(cmd, args);
@@ -277,16 +305,24 @@ module.exports = {
     },
 
     /**
+     * Skip un-watched files.
      *
+     * @param file
+     * @returns {boolean|Array|{index: number, input: string}|*}
      */
-    skipFileChange: function (change) {
-        return !this.watcherEnabled
-            || change.match(this.incExtensionsRule)
-            || !change.match(this.extensionsRule);
+    skipFileChange: function (file) {
+        return file.match(this.incExtensionsRule)
+            || !file.match(this.extensionsRule)
+            || !this.watchRunning;
     },
 
     /**
-     * Compile Yaml file
+     * Compile yaml file.
+     *
+     * @param file
+     * @param incFile
+     * @param callback
+     * @returns {*}
      */
     compile: function (file, incFile, callback) {
         if (!helpers.fileExists(file)) {
@@ -315,29 +351,36 @@ module.exports = {
     },
 
     /**
+     * Apply object sanitize.
      *
+     * @param data
+     * @returns {*}
      */
     recursiveSanitize: function(data) {
-        if (helpers.isNotEmptyObject(data)) {
-            for (var key in data) {
-                if (helpers.isObjectizedArray(data[key])) {
-                    data[key] = values(data[key]);
-                    continue;
-                }
-                data[key] = this.recursiveSanitize(data[key]);
+        if (!helpers.isNotEmptyObject(data)) { return data; }
+
+        for (var key in data) {
+            if (helpers.isObjectizedArray(data[key])) {
+                data[key] = values(data[key]);
+                continue;
             }
+            data[key] = this.recursiveSanitize(data[key]);
         }
+
         return data;
     },
 
     /**
+     * RegExp to match include tag into yaml code.
      *
+     * @returns {RegExp}
      */
     getRegExpIncludeTag: function () {
         return new RegExp('^[ \\t]*' + this.escapeTag + '[ \\t]*:', 'gmi');
     },
 
     /**
+     * Check if object key match include tag.
      *
      * @param key
      * @param includeTag
@@ -364,6 +407,7 @@ module.exports = {
     },
 
     /**
+     * Check argument by index if is an input file.
      *
      * @param args
      * @param i
@@ -376,9 +420,10 @@ module.exports = {
     },
 
     /**
+     * Get input file and incFile by cli arguments.
      *
      * @param args
-     * @returns {{file: *, incFile: *}}
+     * @returns {{file: string, incFile: string}}
      */
     getInputFiles: function (args) {
         for (var i in args) {
