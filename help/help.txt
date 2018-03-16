@@ -2,7 +2,10 @@
 
  Command: --watch [executable args...]   Watch for file changes
                                          during system executable running
-                                         (es. yamlinc --watch spectacle -d api.yml)
+
+          --exec [executable args...]    Launch executable and feed yaml file
+
+          --output [executable args...]  Launch executable and feed yaml file
 
           --version                      Print software version
 

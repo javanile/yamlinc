@@ -1,22 +1,21 @@
 /*!
- * Yamlinc: v0.0.63
+ * Yamlinc: v0.0.64
  * Copyright(c) 2016-2018 Javanile.org
  * MIT Licensed
  */
 
-var fs = require("fs"),
-    realpath = require("fs").realpathSync,
-    dirname = require("path").dirname,
-    basename = require("path").basename,
-    join = require("path").join,
-    merge = require("deepmerge"),
-    yamljs = require("js-yaml"),
-    helpers = require("./helpers"),
-    values = require('object.values'),
-    cuid = require('cuid'),
-    EOL = require('os').EOL;
-
-var chokidar = require("chokidar");
+const fs = require("fs"),
+      realpath = require("fs").realpathSync,
+      dirname = require("path").dirname,
+      basename = require("path").basename,
+      join = require("path").join,
+      merge = require("deepmerge"),
+      yamljs = require("js-yaml"),
+      helpers = require("./helpers"),
+      values = require('object.values'),
+      chokidar = require("chokidar"),
+      cuid = require('cuid'),
+      EOL = require('os').EOL;
 
 module.exports = {
 
@@ -97,7 +96,7 @@ module.exports = {
      */
     run: function (args, callback) {
         if (typeof args == "undefined" || !args || args.length === 0) {
-            return helpers.error("Arguments error", "type: yamlinc --help", callback);
+            return helpers.error("Yamlinc", "Missing arguments, type: yamlinc --help", callback);
         }
 
         // handle command-line options

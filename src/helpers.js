@@ -1,11 +1,11 @@
 /*!
- * Yamlinc
- * Copyright(c) 2016-2017 Javanile.org
+ * Yamlinc: v0.0.64
+ * Copyright(c) 2016-2018 Javanile.org
  * MIT Licensed
  */
 
 var fs = require("fs"),
-    col = require("colors"),
+    colors = require("colors"),
     spawn = require("child_process").spawn,
     basename = require("path").basename;
 
@@ -21,9 +21,9 @@ module.exports = {
      *
      * @param msg
      */
-    error: function (msg, info) {
-        if (this.mute) { return; }
-        return console.log(col.red.bold(msg + " >>"), col.white(info));
+    error: function (type, error, callback) {
+        if (!this.mute) { console.log(colors.red.bold(type + ' >>'), colors.white(error)) }
+        return this.isFunction(callback) && callback({ type: type, error: error });
     },
 
     /**
@@ -33,7 +33,7 @@ module.exports = {
      */
     info: function (msg, info) {
         if (this.mute) { return; }
-        console.log(col.yellow.bold(msg + " >>"), col.white(info));
+        console.log(colors.yellow.bold(msg + " >>"), colors.white(info));
     },
 
     /**

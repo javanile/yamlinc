@@ -1,24 +1,24 @@
 #!/usr/bin/env node
 /*!
- * Yamlinc: v0.0.63
+ * Yamlinc: v0.0.65
  * Copyright(c) 2016-2018 Javanile.org
  * MIT Licensed
  */
 
-"use strict";
+'use strict';
 
-var fs = require("fs");
-var path = require("path");
-var local = "node_modules/yamlinc/src/yamlinc.js";
-var argv = process.argv.slice(2);
-var yamlinc = null;
+var fs = require('fs');
+var args = process.argv.slice(2);
+var yamlinc = '../src/yamlinc.js';
+var paths = [
+    '../node_modules/yamlinc/src/yamlinc.js',
+    './node_modules/yamlinc/src/yamlinc.js',
+];
 
-if (!fs.existsSync(local)) {
-    yamlinc = require("../src/yamlinc");
-} else {
-    yamlinc = require(local);
+for (var i in paths) {
+    if (fs.existsSync(paths[i])) {
+        yamlinc = paths[i];
+    }
 }
 
-yamlinc.run(argv, function (debug) {
-    //console.log(debug);
-});
+require(yamlinc).run(args);

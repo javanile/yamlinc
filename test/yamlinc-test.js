@@ -63,6 +63,13 @@ describe('Testing Yamlinc', function () {
 
     describe('Testing Command-line', function () {
 
+        it('Handle input file', function (done) {
+            yamlinc.run([], function (debug) {
+                console.log(debug);
+                chai.assert.match(debug.error, /\.inc\.yml$/);
+            });
+        });
+
         it('Handle extensions', function (done) {
             yamlinc.run([__dirname + '/samples/sample1.yml'], function (debug) {
                 chai.assert.match(debug.incFile, /\.inc\.yml$/);
