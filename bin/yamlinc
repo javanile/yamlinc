@@ -7,18 +7,10 @@
 
 'use strict';
 
-var fs = require('fs');
-var args = process.argv.slice(2);
-var yamlinc = '../src/yamlinc.js';
-var paths = [
-    '../node_modules/yamlinc/src/yamlinc.js',
-    './node_modules/yamlinc/src/yamlinc.js',
-];
+const fs = require('fs')
+    , cwd = process.cwd()
+    , join = require('path').join
+    , local = join(cwd, './node_modules/yamlinc/src/yamlinc.js')
+    , yamlinc = fs.existsSync(local) ? local : '../src/yamlinc.js'
 
-for (var i in paths) {
-    if (fs.existsSync(paths[i])) {
-        yamlinc = paths[i];
-    }
-}
-
-require(yamlinc).run(args);
+require(yamlinc).run(process.argv.slice(2))
