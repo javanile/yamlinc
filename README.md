@@ -50,24 +50,24 @@ $ yamlinc my_swagger_doc.yml
 ```
 
 **STEP #4** - Get your compiled file 'my_swagger_doc.inc.yml'
-> **NOTICE:** Yamlinc append '*.inc.yml' extension to compiled file.
+> **NOTICE:** Yamlinc appends '*.inc.yml' extension to compiled file.
 
 ## Development watcher
-During development you need costantily updated compiled file by watching changes of dependences
+During development you need costantily updated compiled file by watching changes of dependencies
 
 ```bash
 $ yamlinc --watch spectacle -d my_swagger_doc.yml
 ```
 
 ## Feed your .inc.yml file
-If your application need a copiled file as parameter you simple compound and feed 
+If your application needs a copiled file as parameter you can simply compound and feed 
 
 ```bash
 $ yamlinc --exec docker-compose -f docker-compose.yml
 ```
 
 ## Create your scenario
-If you have custom scenario with YAML file please place an issues on the follow page
+If you have custom scenario with YAML file please place issues on the following page
 
 https://github.com/javanile/yamlinc/issues/new
 
