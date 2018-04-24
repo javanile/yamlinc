@@ -363,7 +363,14 @@ module.exports = {
                 data[key] = values(data[key]);
                 continue;
             }
-            data[key] = this.recursiveSanitize(data[key]);
+			
+            if( Array.isArray(data[key]) ) {
+                for( var arrKey in data[key] ) {
+                    data[key][arrKey] = this.recursiveSanitize( data[key][arrKey] );
+                }
+            } else {
+                data[key] = this.recursiveSanitize(data[key]);
+            }
         }
 
         return data;
