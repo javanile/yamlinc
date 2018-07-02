@@ -60,12 +60,26 @@ module.exports = {
     incExtensionsRule: new RegExp('\\.inc\\.(yml|yaml)$', 'i'),
 
     /**
+     * Output mode.  Default: FILE
+     *
+     * Possible modes:
+     * FILE
+     * STDOUT
+     */
+    outputMode: 'FILE',
+
+    /**
+     * Output file name.  Default: <inputfileprefix>.inc.<inputfilesuffix>
+     */
+    outputFileName: '',
+
+    /**
      * Supported options.
      */
     options: {
         '-o': 'setOutput',
         '--mute': 'setMute',
-        '--outout': 'setOutput',
+        '--output': 'setOutput',
     },
 
     /**
@@ -342,7 +356,13 @@ module.exports = {
         // Print-out compiled code into file
         helpers.info("Compile", incFile);
         var code = data ? yamljs.safeDump(data) : 'empty: true' + EOL;
-        fs.writeFileSync(incFile, disclaimer.join(EOL) + EOL + EOL + code);
+
+        if (this.outputMode === 'FILE')
+            fs.writeFileSync(incFile, disclaimer.join(EOL) + EOL + EOL + code);
+        else {
+            process.stdout.write(incFile);
+            process.stdout.write(disclaimer.join(EOL) + EOL + EOL + code);
+        }
 
         // Trigger debugger callback
         return helpers.isFunction(callback)
@@ -448,10 +468,15 @@ module.exports = {
      * @returns {void|string}
      */
     getIncFile: function (file) {
-        for (var i in this.extensions) {
-            if (this.extensions.hasOwnProperty(i)) {
-                var rule = new RegExp('\\.(' + this.extensions[i] + ')$', 'i');
-                if (file.match(rule)) { return basename(file).replace(rule, '.inc.$1'); }
+        if (this.outputMode === 'STDOUT') return '';
+
+        if (this.outputFileName && this.outputFileName !== '') return this.outputFileName
+        else {
+            for (var i in this.extensions) {
+                if (this.extensions.hasOwnProperty(i)) {
+                    var rule = new RegExp('\\.(' + this.extensions[i] + ')$', 'i');
+                    if (file.match(rule)) { return basename(file).replace(rule, '.inc.$1'); }
+                }
             }
         }
     },
@@ -465,6 +490,29 @@ module.exports = {
         args.splice(args.indexOf('--mute'), 1);
         helpers.mute = true;
         this.mute = true;
+    },
+
+    /**
+     * Set output mode.
+     *
+     * @param args
+     */
+    setOutput: function (args) {
+        var index = args.indexOf('--output');
+        if (index < 0) index = args.indexOf('-o');
+        if (index < 0) return;
+
+        if (args[index + 1] === null || args[index + 1] === undefined ||
+            args[index + 2] === null || args[index + 2] === undefined)
+            throw new Error('Missing arguments.');
+
+        if (args[index + 1] === '-') {
+            this.outputMode = 'STDOUT'
+            this.outputFileName = '';
+        } else {
+            this.outputMode = 'FILE';
+            this.outputFileName = target;
+        }
     },
 
     /**
