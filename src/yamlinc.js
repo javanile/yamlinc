@@ -6,6 +6,7 @@
 
 const fs = require("fs"),
       realpath = require("fs").realpathSync,
+      mkdirp = require('mkdirp'),
       dirname = require("path").dirname,
       basename = require("path").basename,
       join = require("path").join,
@@ -357,9 +358,11 @@ module.exports = {
         helpers.info("Compile", incFile);
         var code = data ? yamljs.safeDump(data) : 'empty: true' + EOL;
 
-        if (this.outputMode === 'FILE')
-            fs.writeFileSync(incFile, disclaimer.join(EOL) + EOL + EOL + code);
-        else {
+        if (this.outputMode === 'FILE') {
+            mkdirp(dirname(incFile), function() {
+                fs.writeFileSync(incFile, disclaimer.join(EOL) + EOL + EOL + code);
+            })
+        } else {
             process.stdout.write(incFile);
             process.stdout.write(disclaimer.join(EOL) + EOL + EOL + code);
         }
@@ -423,10 +426,11 @@ module.exports = {
      * @returns {*}
      */
     getInputFile: function (args) {
-        for (var i in args) {
-            if (this.isArgumentInputFile(args, i)) {
-                var file = args[i];
-                args.splice(i, 1);
+        // Go in reverse since the filename is supposed to be last
+        for (var index = args.length - 1; index >= 0; index--) {
+            if (this.isArgumentInputFile(args, index)) {
+                var file = args[index];
+                args.splice(index, 1);
                 return file;
             }
         }
