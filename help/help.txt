@@ -5,7 +5,8 @@
 
           --exec [executable args...]    Launch executable and feed yaml file
 
-          --output [executable args...]  Launch executable and feed yaml file
+          -o [filename]
+          --output [filename]            Specify output file name.  If '-' is supplied, will write to STDOUT.
 
           --version                      Print software version
 

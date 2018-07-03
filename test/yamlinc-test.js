@@ -65,8 +65,8 @@ describe('Testing Yamlinc', function () {
 
         it('Handle input file', function (done) {
             yamlinc.run([], function (debug) {
-                console.log(debug);
-                chai.assert.match(debug.error, /\.inc\.yml$/);
+                chai.assert.equal(debug.error, "Missing arguments, type: yamlinc --help");
+                done();
             });
         });
 
