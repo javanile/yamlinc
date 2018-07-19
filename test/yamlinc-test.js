@@ -73,27 +73,27 @@ describe('Testing Yamlinc', function () {
         it('Handle extensions', function (done) {
             yamlinc.run([__dirname + '/samples/sample1.yml'], function (debug) {
                 chai.assert.match(debug.incFile, /\.inc\.yml$/);
-                fs.unlinkSync(debug.incFile);
+                fs.unlinkSync(process.cwd() + '/' + debug.incFile);
             });
             yamlinc.run([__dirname + '/samples/sample2.YAML'], function (debug) {
                 chai.assert.match(debug.incFile, /\.inc\.YAML/);
-                fs.unlinkSync(debug.incFile);
+                fs.unlinkSync(process.cwd() + '/' + debug.incFile);
             });
             yamlinc.run([__dirname + '/samples/sample3.Yml'], function (debug) {
                 chai.assert.match(debug.incFile, /\.inc\.Yml$/);
-                fs.unlinkSync(debug.incFile);
+                fs.unlinkSync(process.cwd() + '/' + debug.incFile);
             });
             yamlinc.run([__dirname + '/samples/sample4.yaml'], function (debug) {
                 chai.assert.match(debug.incFile, /\.inc\.yaml$/);
-                fs.unlinkSync(debug.incFile);
+                fs.unlinkSync(process.cwd() + '/' + debug.incFile);
             });
             yamlinc.run([__dirname + '/samples/sample5.Yaml'], function (debug) {
                 chai.assert.match(debug.incFile, /\.inc\.Yaml$/);
-                fs.unlinkSync(debug.incFile);
+                fs.unlinkSync(process.cwd() + '/' + debug.incFile);
             });
             yamlinc.run([__dirname + '/samples/sample6.YML'], function (debug) {
                 chai.assert.match(debug.incFile, /\.inc\.YML$/);
-                fs.unlinkSync(debug.incFile);
+                fs.unlinkSync(process.cwd() + '/' + debug.incFile);
                 done();
             });
         });

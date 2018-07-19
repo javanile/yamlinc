@@ -6,7 +6,7 @@
 
 const fs = require("fs"),
       realpath = require("fs").realpathSync,
-      mkdirp = require('mkdirp'),
+      mkdirp = require('mkdirp').sync,
       dirname = require("path").dirname,
       basename = require("path").basename,
       join = require("path").join,
@@ -359,9 +359,8 @@ module.exports = {
         var code = data ? yamljs.safeDump(data) : 'empty: true' + EOL;
 
         if (this.outputMode === 'FILE') {
-            mkdirp(dirname(incFile), function() {
-                fs.writeFileSync(incFile, disclaimer.join(EOL) + EOL + EOL + code);
-            })
+            mkdirp(dirname(incFile));
+            fs.writeFileSync(incFile, disclaimer.join(EOL) + EOL + EOL + code);
         } else {
             process.stdout.write(incFile);
             process.stdout.write(disclaimer.join(EOL) + EOL + EOL + code);
