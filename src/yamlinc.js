@@ -507,7 +507,7 @@ module.exports = {
 
         if (args[index + 1] === null || args[index + 1] === undefined ||
             args[index + 2] === null || args[index + 2] === undefined) {
-            helpers.error("Yamlinc", "Missing arguments, type: yamlinc --help");
+            helpers.error('Yamlinc', 'Missing arguments, type: yamlinc --help');
         } else {
             if (args[index + 1] === '-') {
                 this.outputMode = 'STDOUT'
@@ -525,8 +525,8 @@ module.exports = {
      * @param args
      */
     getHelp: function (args) {
-        var help = join(__dirname, "../help/help.txt");
-        return console.log(fs.readFileSync(help)+"");
+        var help = join(__dirname, '../help/help.txt');
+        return console.log(fs.readFileSync(help) + '');
     },
 
     /**
@@ -535,7 +535,7 @@ module.exports = {
      * @param args
      */
     getVersion: function () {
-        var info = JSON.parse(fs.readFileSync(join(__dirname, "../package.json")), "utf8");
-        return info.name + "@" + info.version;
+        var info = JSON.parse(fs.readFileSync(join(__dirname, '../package.json')), 'utf8');
+        return info.name + '@' + info.version;
     }
 };
