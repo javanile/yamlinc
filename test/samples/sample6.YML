@@ -1,0 +1,12 @@
+
+test1:
+  a: 2
+  b: 4
+
+test2:
+  $include: sample6-include1.yml
+
+test3:
+  $include: sample6-include1.yml
+  $include: sample6-include2.yml
+

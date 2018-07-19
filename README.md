@@ -1,18 +1,20 @@
 # Yamlinc
 Create a composed YAML file using $include tag. 
 
+[![NPM](https://nodei.co/npm/yamlinc.png?compact=true)](https://nodei.co/npm/yamlinc/)
+
 [![Build Status](https://travis-ci.org/javanile-bot/yamlinc.svg?branch=master)](https://travis-ci.org/javanile-bot/yamlinc)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/43662de1f27dc3629953/test_coverage)](https://codeclimate.com/github/javanile-bot/yamlinc/test_coverage)
 [![Maintainability](https://api.codeclimate.com/v1/badges/43662de1f27dc3629953/maintainability)](https://codeclimate.com/github/javanile-bot/yamlinc/maintainability)
 
 ## Simple usage
 
-1. Install global tur command-line utility
+**STEP #1** - Install global yamlinc command-line utility
 ```bash
-$ npm install tur -g
+$ npm install -g yamlinc
 ```
 
-2. Create "my_swagger_doc.yml" and split it into multiple file  
+**STEP #2** - Create "my_swagger_doc.yml" and split it into multiple file  
 ```yaml
 ## file: my_swagger_doc.yml
 version: '2.0'
@@ -42,21 +44,32 @@ paths:
   post: ...
 ```
 
-3. Simply compile the entry point 'my_swagger_doc.yml'
-```
-$ tur my_swagger_doc.yml
-```
-
-4. Get your compiled file 'my_swagger_doc.inc.yml'
-> **NOTICE:** Ymalinc append '*.inc.yml' extension to compiled file.
-
-## Develompment watcher
-During development you need costantily updated compiled file by watching changes of dependences
-
-```
-$ tur --watch spectacle -d my_swagger_doc.yml
+**STEP #3** - Simply compile the entry point 'my_swagger_doc.yml'
+```bash
+$ yamlinc my_swagger_doc.yml
 ```
 
+**STEP #4** - Get your compiled file 'my_swagger_doc.inc.yml'
+> **NOTICE:** Yamlinc appends '*.inc.yml' extension to compiled file.
+
+## Development watcher
+During development you need costantily updated compiled file by watching changes of dependencies
+
+```bash
+$ yamlinc --watch spectacle -d my_swagger_doc.yml
+```
+
+## Feed your .inc.yml file
+If your application needs a copiled file as parameter you can simply compound and feed 
+
+```bash
+$ yamlinc --exec docker-compose -f docker-compose.yml
+```
+
+## Create your scenario
+If you have custom scenario with YAML file please place issues on the following page
+
+https://github.com/javanile/yamlinc/issues/new
 
 
 

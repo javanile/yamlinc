@@ -1,8 +1,12 @@
-   Usage: tur [command...] <file>
+   Usage: yamlinc [command...] <file>
 
  Command: --watch [executable args...]   Watch for file changes
                                          during system executable running
-                                         (es. tur --watch spectacle -d api.yml)
+
+          --exec [executable args...]    Launch executable and feed yaml file
+
+          -o [filename]
+          --output [filename]            Specify output file name.  If '-' is supplied, will write to STDOUT.
 
           --version                      Print software version
 

@@ -1,11 +1,11 @@
 /*!
- * Yamlinc
- * Copyright(c) 2016-2017 Javanile.org
+ * Yamlinc: v0.0.64
+ * Copyright(c) 2016-2018 Javanile.org
  * MIT Licensed
  */
 
 var fs = require("fs"),
-    col = require("colors"),
+    colors = require("colors"),
     spawn = require("child_process").spawn,
     basename = require("path").basename;
 
@@ -21,9 +21,9 @@ module.exports = {
      *
      * @param msg
      */
-    error: function (msg, info) {
-        if (this.mute) { return; }
-        return console.log(col.red.bold(msg + " >>"), col.white(info));
+    error: function (type, error, callback) {
+        if (!this.mute) { console.log(colors.red.bold(type + ' >>'), colors.white(error)) }
+        return this.isFunction(callback) && callback({ type: type, error: error });
     },
 
     /**
@@ -33,7 +33,7 @@ module.exports = {
      */
     info: function (msg, info) {
         if (this.mute) { return; }
-        console.log(col.yellow.bold(msg + " >>"), col.white(info));
+        console.log(colors.yellow.bold(msg + " >>"), colors.white(info));
     },
 
     /**
@@ -75,47 +75,43 @@ module.exports = {
 
     /**
      *
-     * @param args
-     * @returns {*}
      */
-    getInputFile: function (args) {
-        var file = null;
-        for (var i in args) {
-            if (!args.hasOwnProperty(i)) {
-                continue;
-            }
-            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
-                file = args[i];
-                args.splice(i, 1);
-                break;
-            }
-        }
-        return file;
-    },
-
-    getInputFiles: function (args) {
-        var file = null;
-        var fileInc = null;
-        for (var i in args) {
-            if (!args.hasOwnProperty(i)) { continue; }
-            if (args[i].charAt(0) != "-" && args[i].match(/\.yml$/)) {
-                file = args[i];
-                fileInc = this.getFileInc(file);
-                args[i] = fileInc;
-                break;
-            }
-        }
-        return {
-            file: file,
-            fileInc: fileInc
-        };
+    isNotEmptyObject: function (value) {
+        return value
+            && !Array.isArray(value)
+            && typeof value === 'object'
+            && Object.keys(value).length;
     },
 
     /**
      *
      */
-    getFileInc: function (file) {
-        //return join(process.cwd(), basename(file).replace(/\.yml$/, '.inc.yml'));
-        return basename(file).replace(/\.yml$/, '.inc.yml');
+    isNotEmptyArray: function (value) {
+        return value
+            && Array.isArray(value)
+            && value.length > 0;
     },
+
+    /**
+     *
+     * @param value
+     */
+    isObjectizedArray: function (value) {
+        if (this.isNotEmptyObject(value)) {
+            var i = 0;
+            for (var key in value) {
+                if (key !== ''+i) { return false; }
+                i++;
+            }
+            return true;
+        }
+        return false;
+    },
+
+    /**
+     *
+     */
+    isFunction: function (value) {
+        return typeof value === "function";
+    }
 };
