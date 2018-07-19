@@ -7,9 +7,9 @@ Create a composed YAML file using $include tag.
 
 ## Simple usage
 
-1. Install global yamlinc command-line utility
+1. Install global tur command-line utility
 ```bash
-$ npm install yamlinc -g
+$ npm install tur -g
 ```
 
 2. Create "my_swagger_doc.yml" and split it into multiple file  
@@ -44,7 +44,7 @@ paths:
 
 3. Simply compile the entry point 'my_swagger_doc.yml'
 ```
-$ yamlinc my_swagger_doc.yml
+$ tur my_swagger_doc.yml
 ```
 
 4. Get your compiled file 'my_swagger_doc.inc.yml'
@@ -54,7 +54,7 @@ $ yamlinc my_swagger_doc.yml
 During development you need costantily updated compiled file by watching changes of dependences
 
 ```
-$ yamlinc --watch spectacle -d my_swagger_doc.yml
+$ tur --watch spectacle -d my_swagger_doc.yml
 ```
 
 

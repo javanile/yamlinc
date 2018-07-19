@@ -1,8 +1,8 @@
-   Usage: yamlinc [command...] <file>
+   Usage: tur [command...] <file>
 
  Command: --watch [executable args...]   Watch for file changes
                                          during system executable running
-                                         (es. yamlinc --watch spectacle -d api.yml)
+                                         (es. tur --watch spectacle -d api.yml)
 
           --version                      Print software version
 
