@@ -542,11 +542,13 @@ module.exports = {
 
         if (args[index + 1] === null || args[index + 1] === undefined ||
             args[index + 2] === null || args[index + 2] === undefined) {
+            this.strict = true;
             helpers.strict = true;
-            helpers.error('Problem', 'Missing arguments, type: yamlinc --help');
+            helpers.error('Problem', `Missing output file name, type: 'yamlinc --help'.`);
         } else {
-            this.mute = true;
             if (args[index + 1] === '-') {
+                this.mute = true;
+                helpers.mute = true;
                 this.outputMode = 'STDOUT'
                 this.outputFileName = '';
             } else {
