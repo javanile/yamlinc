@@ -66,12 +66,21 @@ If your application needs a copiled file as parameter you can simply compound an
 $ yamlinc --exec docker-compose -f docker-compose.yml
 ```
 
+## Redirect output to another command
+If your application needs send output to another command or chaining using pipe follow this example
+
+```bash
+$ yamlinc --output - input.yml | nc seashells.io 1337
+```
+
+## Parse files to find syntax errors
+If your application needs stop after a syntax error or missing file inclusion use strict mode 
+
+```bash
+$ yamlinc --strict settings.yml
+```
+
 ## Create your scenario
 If you have custom scenario with YAML file please place issues on the following page
 
 https://github.com/javanile/yamlinc/issues/new
-
-
-
-
-
