@@ -23,17 +23,21 @@ module.exports = {
     /**
      * Print error message.
      *
-     * @param msg
+     * @param type
+     * @param error
+     * @param callback
      */
     error: function (type, error, callback) {
         if (!this.mute) { console.log(' >',colors.red.bold(type), ':', error) }
+        if (this.strict) { process.exit(1) }
         return this.isFunction(callback) && callback({ type: type, error: error });
     },
 
     /**
+     * Print degug or info line.
      *
-     * @param key
      * @param msg
+     * @param info
      */
     info: function (msg, info) {
         if (this.mute) { return; }
@@ -41,6 +45,7 @@ module.exports = {
     },
 
     /**
+     * Print success line.
      *
      * @param key
      * @param msg
