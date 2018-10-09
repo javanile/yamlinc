@@ -121,7 +121,7 @@ module.exports = {
      */
     run: function (args, callback) {
         if (typeof args === "undefined" || !args || args.length === 0) {
-            return helpers.error("Yamlinc", "Missing arguments, type: yamlinc --help", callback);
+            return helpers.error("Problem", "Missing arguments, type: 'yamlinc --help'.", callback);
         }
 
         // handle command-line options
@@ -141,7 +141,7 @@ module.exports = {
         // looking for file in arguments
         let file = this.getInputFile(args);
         if (!file) {
-            return helpers.error("Arguments error", "missing file name.", callback);
+            return helpers.error("Problem", "Missing file name, type: 'yamlinc --help'", callback);
         }
 
         // generate name of .inc.yml output file
@@ -260,7 +260,7 @@ module.exports = {
 
         let input = this.getInputFiles(args);
         if (!input) {
-            return helpers.error('File error', 'missing input file to watch.', callback);
+            return helpers.error('Problem', 'missing input file to watch.', callback);
         }
 
         let match = [];
@@ -301,7 +301,7 @@ module.exports = {
 
         let input = this.getInputFiles(args);
         if (!input) {
-            return helpers.error('File error', 'missing input file to exec.', callback);
+            return helpers.error('Problem', 'missing input file to exec.', callback);
         }
 
         this.compile(input.file, input.incFile, callback);
@@ -364,7 +364,7 @@ module.exports = {
      */
     compile: function (file, incFile, callback) {
         if (!helpers.fileExists(file)) {
-            return helpers.error('File error', "file '" + file + "' not found.", callback);
+            return helpers.error('Problem', "file '" + file + "' not found.", callback);
         }
 
         // Compile and prepare disclaimer
@@ -542,8 +542,10 @@ module.exports = {
 
         if (args[index + 1] === null || args[index + 1] === undefined ||
             args[index + 2] === null || args[index + 2] === undefined) {
-            helpers.error('Yamlinc', 'Missing arguments, type: yamlinc --help');
+            helpers.strict = true;
+            helpers.error('Problem', 'Missing arguments, type: yamlinc --help');
         } else {
+            this.mute = true;
             if (args[index + 1] === '-') {
                 this.outputMode = 'STDOUT'
                 this.outputFileName = '';
