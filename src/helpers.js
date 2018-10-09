@@ -1,13 +1,12 @@
 /*!
- * Yamlinc: v0.0.64
+ * Yamlinc: v0.1.2
  * Copyright(c) 2016-2018 Javanile.org
  * MIT Licensed
  */
 
-var fs = require("fs"),
-    colors = require("colors"),
-    spawn = require("child_process").spawn,
-    basename = require("path").basename;
+const fs = require("fs")
+    , colors = require("colors")
+    , spawn = require("child_process").spawn
 
 module.exports = {
 
@@ -17,12 +16,17 @@ module.exports = {
     mute: false,
 
     /**
+     * Mute print info/error message
+     */
+    strict: false,
+
+    /**
      * Print error message.
      *
      * @param msg
      */
     error: function (type, error, callback) {
-        if (!this.mute) { console.log(colors.red.bold(type + ' >>'), colors.white(error)) }
+        if (!this.mute) { console.log(' >',colors.red.bold(type), ':', error) }
         return this.isFunction(callback) && callback({ type: type, error: error });
     },
 
@@ -33,7 +37,17 @@ module.exports = {
      */
     info: function (msg, info) {
         if (this.mute) { return; }
-        console.log(colors.yellow.bold(msg + " >>"), colors.white(info));
+        console.log('  ', colors.gray.bold(msg), ':', info);
+    },
+
+    /**
+     *
+     * @param key
+     * @param msg
+     */
+    done: function (msg, info) {
+        if (this.mute) { return; }
+        console.log('  ', colors.green.bold(msg), ':', info);
     },
 
     /**

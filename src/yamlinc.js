@@ -4,17 +4,16 @@
  * MIT Licensed
  */
 
-const fs = require("fs")
-    , realpath = require("fs").realpathSync
+const fs = require('fs')
     , mkdirp = require('mkdirp').sync
-    , dirname = require("path").dirname
-    , basename = require("path").basename
-    , join = require("path").join
-    , merge = require("deepmerge")
-    , yamljs = require("js-yaml")
-    , helpers = require("./helpers")
+    , dirname = require('path').dirname
+    , basename = require('path').basename
+    , join = require('path').join
+    , merge = require('deepmerge')
+    , yamljs = require('js-yaml')
+    , helpers = require('./helpers')
     , values = require('object.values')
-    , chokidar = require("chokidar")
+    , chokidar = require('chokidar')
     , cuid = require('cuid')
     , EOL = require('os').EOL
 
@@ -26,7 +25,7 @@ module.exports = {
     mute: false,
 
     /**
-     * Enable strict mode.
+     * Enable strict mode block if errors occur.
      */
     strict: false,
 
@@ -75,9 +74,14 @@ module.exports = {
     outputMode: 'FILE',
 
     /**
-     * Output file name.  Default: <inputfileprefix>.inc.<inputfilesuffix>
+     * Output file name.  Default: <inputFilePrefix>.inc.<inputFileSuffix>
      */
     outputFileName: '',
+
+    /**
+     * Output file name.  Default: <inputFilePrefix>.inc.<inputFileSuffix>
+     */
+    currentResolve: null,
 
     /**
      * Supported options.
@@ -100,7 +104,7 @@ module.exports = {
     },
 
     /**
-     * Called for retrive internal debug.
+     * Called for retrieve internal debug.
      *
      * @name debugCallback
      * @function
@@ -156,8 +160,15 @@ module.exports = {
     resolve: function(file) {
         let base = dirname(file),
             code = this.loadMetacode(file),
-            data = yamljs.safeLoad(code);
+            data = ''
 
+        try {
+            data = yamljs.safeLoad(code);
+        } catch (exception) {
+            helpers.error('Problem', `Error on file '${file}' ${exception.message}`);
+        }
+
+        this.currentResolve = file;
         this.recursiveResolve(data, base);
         this.recursiveSanitize(data);
 
@@ -191,10 +202,10 @@ module.exports = {
         for (let key in data) {
             if (this.isKeyMatchIncludeTag(key)) {
                 if (typeof data[key] === "string" && data[key]) {
-                    includes = this.recursiveInclude(base + '/' + data[key], includes);
+                    includes = this.recursiveInclude(base, data[key], includes);
                 } else if (typeof data[key] === "object") {
                     for (let index in data[key]) {
-                        includes = this.recursiveInclude(base + '/' + data[key][index], includes);
+                        includes = this.recursiveInclude(base, data[key][index], includes);
                     }
                 }
                 delete data[key];
@@ -218,16 +229,26 @@ module.exports = {
      * @param includes
      * @returns {*}
      */
-    recursiveInclude: function (file, includes) {
-        if (helpers.fileExists(file)) {
-            helpers.info("Include", file);
-            let include = this.resolve(file);
+    recursiveInclude: function (base, file, includes) {
+        if (helpers.fileExists(base + '/' + file)) {
+            helpers.info('Include', file);
+
+            let include = this.resolve(base + '/' + file);
+
             if (helpers.isNotEmptyObject(include)) {
                 includes = Object.assign(includes, merge(includes, include));
             } else if (helpers.isNotEmptyArray(include)) {
                 includes = Object.assign(includes, merge(includes, include));
             }
+
+            return includes;
         }
+
+        // Detect file not found on resolve file
+        let code = fs.readFileSync(this.currentResolve).toString();
+        let line = (code.substr(0, code.indexOf(file)).match(/\n/g) || []).length + 1;
+        helpers.error('Problem', `file not found '${file}' on '${this.currentResolve}' at line ${line}.`);
+
         return includes;
     },
 
@@ -235,7 +256,6 @@ module.exports = {
      *
      */
     runCommandWatch: function (args, callback) {
-        let yamlinc = this;
         args.splice(args.indexOf('--watch'), 1);
 
         let input = this.getInputFiles(args);
@@ -258,18 +278,18 @@ module.exports = {
         let cmd = args.shift();
 
         watcher
-            .on('change', function(file) { yamlinc.handleFileChange(file, input, cmd, args); })
-            .on('unlink', function(file) { yamlinc.handleFileChange(file, input, cmd, args); });
+            .on('change', (file) => { this.handleFileChange(file, input, cmd, args) })
+            .on('unlink', (file) => { this.handleFileChange(file, input, cmd, args) });
 
-        setTimeout(function() {
-            watcher.on('add', function(file) {
-                yamlinc.handleFileChange(file, input, cmd, args);
+        setTimeout(() => {
+            watcher.on('add', (file) => {
+                this.handleFileChange(file, input, cmd, args);
             });
         }, 15000);
 
-        setTimeout(function(){
-            yamlinc.watchRunning = true;
-            yamlinc.spawnLoop(cmd, args);
+        setTimeout(() => {
+            this.watchRunning = true;
+            this.spawnLoop(cmd, args);
         }, 1000);
     },
 
@@ -359,7 +379,7 @@ module.exports = {
         ];
 
         // Print-out compiled code into file
-        helpers.info("Compile", incFile);
+        helpers.done("Compile", incFile);
         let code = data ? yamljs.safeDump(data) : 'empty: true' + EOL;
 
         if (this.outputMode === 'FILE') {
@@ -506,6 +526,7 @@ module.exports = {
      */
     setStrict: function (args) {
         args.splice(args.indexOf('--strict'), 1);
+        helpers.strict = true;
         this.strict = true;
     },
 
