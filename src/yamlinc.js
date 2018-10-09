@@ -121,27 +121,27 @@ module.exports = {
         }
 
         // handle command-line options
-        for (var option in this.options) {
+        for (let option in this.options) {
             if (args.indexOf(option) > -1) {
                 this[this.options[option]](args);
             }
         }
 
         // handle command-line commands
-        for (var command in this.commands) {
+        for (let command in this.commands) {
             if (args.indexOf(command) > -1) {
                 return this[this.commands[command]](args, callback);
             }
         }
 
         // looking for file in arguments
-        var file = this.getInputFile(args);
+        let file = this.getInputFile(args);
         if (!file) {
             return helpers.error("Arguments error", "missing file name.", callback);
         }
 
         // generate name of .inc.yml output file
-        var incFile = this.getIncFile(file);
+        let incFile = this.getIncFile(file);
 
         // compile yaml files
         return this.compile(file, incFile, callback);
@@ -154,7 +154,7 @@ module.exports = {
      * @returns {string} yaml code
      */
     resolve: function(file) {
-        var base = dirname(file),
+        let base = dirname(file),
             code = this.loadMetacode(file),
             data = yamljs.safeLoad(code);
 
@@ -171,7 +171,7 @@ module.exports = {
      * @returns {string} yaml meta code
      */
     loadMetacode: function (file) {
-        var yamlinc = this;
+        let yamlinc = this;
         return fs.readFileSync(file).toString()
             .replace(this.getRegExpIncludeTag(), function (tag) {
                 return tag.replace(yamlinc.includeTag, yamlinc.includeTag + '_' + cuid());
@@ -187,13 +187,13 @@ module.exports = {
     recursiveResolve: function(data, base) {
         if (typeof data !== 'object') { return; }
 
-        var includes = {};
-        for (var key in data) {
+        let includes = {};
+        for (let key in data) {
             if (this.isKeyMatchIncludeTag(key)) {
                 if (typeof data[key] === "string" && data[key]) {
                     includes = this.recursiveInclude(base + '/' + data[key], includes);
                 } else if (typeof data[key] === "object") {
-                    for (var index in data[key]) {
+                    for (let index in data[key]) {
                         includes = this.recursiveInclude(base + '/' + data[key][index], includes);
                     }
                 }
@@ -221,7 +221,7 @@ module.exports = {
     recursiveInclude: function (file, includes) {
         if (helpers.fileExists(file)) {
             helpers.info("Include", file);
-            var include = this.resolve(file);
+            let include = this.resolve(file);
             if (helpers.isNotEmptyObject(include)) {
                 includes = Object.assign(includes, merge(includes, include));
             } else if (helpers.isNotEmptyArray(include)) {
@@ -235,27 +235,27 @@ module.exports = {
      *
      */
     runCommandWatch: function (args, callback) {
-        var yamlinc = this;
+        let yamlinc = this;
         args.splice(args.indexOf('--watch'), 1);
 
-        var input = this.getInputFiles(args);
+        let input = this.getInputFiles(args);
         if (!input) {
             return helpers.error('File error', 'missing input file to watch.', callback);
         }
 
-        var match = [];
-        for (var i in this.extensions) {
+        let match = [];
+        for (let i in this.extensions) {
             match.push('./**/*.*');
         }
 
-        var watcher = chokidar.watch(match, {
+        let watcher = chokidar.watch(match, {
             persistent: true,
             usePolling: true
         });
 
         this.compile(input.file, input.incFile, callback);
 
-        var cmd = args.shift();
+        let cmd = args.shift();
 
         watcher
             .on('change', function(file) { yamlinc.handleFileChange(file, input, cmd, args); })
@@ -274,36 +274,34 @@ module.exports = {
     },
 
     /**
-     *
+     * Run command after compile file.
      */
     runCommandExec: function (args, callback) {
-        var yamlinc = this;
         args.splice(args.indexOf('--exec'), 1);
 
-        var input = this.getInputFiles(args);
+        let input = this.getInputFiles(args);
         if (!input) {
             return helpers.error('File error', 'missing input file to exec.', callback);
         }
 
         this.compile(input.file, input.incFile, callback);
 
-        var cmd = args.shift();
+        let cmd = args.shift();
 
         helpers.info('Command', cmd + ' ' + args.join(' '));
         helpers.spawn(cmd, args);
     },
 
     /**
-     *
+     * Repeat spawn command
      */
     spawnLoop: function (cmd, args) {
         if (this.spawnRunning) { return; }
-
-        var yamlinc = this;
+        
         this.spawnRunning = true;
         helpers.info('Command', cmd + ' ' + args.join(' '));
-        helpers.spawn(cmd, args, function(){
-            yamlinc.spawnRunning = false;
+        helpers.spawn(cmd, args, () => {
+            this.spawnRunning = false;
         });
     },
 
@@ -351,8 +349,8 @@ module.exports = {
 
         // Compile and prepare disclaimer
         helpers.info("Analize", file);
-        var data = this.resolve(file);
-        var disclaimer = [
+        let data = this.resolve(file);
+        let disclaimer = [
             "## --------------------",
             "## DON'T EDIT THIS FILE",
             "## --------------------",
@@ -362,7 +360,7 @@ module.exports = {
 
         // Print-out compiled code into file
         helpers.info("Compile", incFile);
-        var code = data ? yamljs.safeDump(data) : 'empty: true' + EOL;
+        let code = data ? yamljs.safeDump(data) : 'empty: true' + EOL;
 
         if (this.outputMode === 'FILE') {
             mkdirp(dirname(incFile));
@@ -386,14 +384,14 @@ module.exports = {
     recursiveSanitize: function(data) {
         if (!helpers.isNotEmptyObject(data)) { return data; }
 
-        for (var key in data) {
+        for (let key in data) {
             if (helpers.isObjectizedArray(data[key])) {
                 data[key] = values(data[key]);
                 continue;
             }
 			
             if( Array.isArray(data[key]) ) {
-                for( var arrKey in data[key] ) {
+                for( let arrKey in data[key] ) {
                     data[key][arrKey] = this.recursiveSanitize( data[key][arrKey] );
                 }
             } else {
@@ -432,9 +430,9 @@ module.exports = {
      */
     getInputFile: function (args) {
         // Go in reverse since the filename is supposed to be last
-        for (var index = args.length - 1; index >= 0; index--) {
+        for (let index = args.length - 1; index >= 0; index--) {
             if (this.isArgumentInputFile(args, index)) {
-                var file = args[index];
+                let file = args[index];
                 args.splice(index, 1);
                 return file;
             }
@@ -461,9 +459,9 @@ module.exports = {
      * @returns {{file: string, incFile: string}}
      */
     getInputFiles: function (args) {
-        for (var i in args) {
+        for (let i in args) {
             if (this.isArgumentInputFile(args, i)) {
-                var file = args[i];
+                let file = args[i];
                 args[i] = this.getIncFile(file);
                 return { file: file, incFile: args[i] };
             }
@@ -481,9 +479,9 @@ module.exports = {
 
         if (this.outputFileName && this.outputFileName !== '') return this.outputFileName
         else {
-            for (var i in this.extensions) {
+            for (let i in this.extensions) {
                 if (this.extensions.hasOwnProperty(i)) {
-                    var rule = new RegExp('\\.(' + this.extensions[i] + ')$', 'i');
+                    let rule = new RegExp('\\.(' + this.extensions[i] + ')$', 'i');
                     if (file.match(rule)) { return basename(file).replace(rule, '.inc.$1'); }
                 }
             }
@@ -506,7 +504,7 @@ module.exports = {
      *
      * @param args
      */
-    setMute: function (args) {
+    setStrict: function (args) {
         args.splice(args.indexOf('--strict'), 1);
         this.strict = true;
     },
@@ -517,7 +515,7 @@ module.exports = {
      * @param args
      */
     setOutput: function (args) {
-        var index = args.indexOf('--output');
+        let index = args.indexOf('--output');
         if (index < 0) index = args.indexOf('-o');
         if (index < 0) return;
 
@@ -541,7 +539,7 @@ module.exports = {
      * @param args
      */
     getHelp: function (args) {
-        var help = join(__dirname, '../help/help.txt');
+        let help = join(__dirname, '../help/help.txt');
         return console.log(fs.readFileSync(help) + '');
     },
 
@@ -551,7 +549,7 @@ module.exports = {
      * @param args
      */
     getVersion: function () {
-        var info = JSON.parse(fs.readFileSync(join(__dirname, '../package.json')), 'utf8');
+        let info = JSON.parse(fs.readFileSync(join(__dirname, '../package.json')), 'utf8');
         return info.name + '@' + info.version;
     }
 };
