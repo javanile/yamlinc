@@ -4,19 +4,19 @@
  * MIT Licensed
  */
 
-const fs = require("fs"),
-      realpath = require("fs").realpathSync,
-      mkdirp = require('mkdirp').sync,
-      dirname = require("path").dirname,
-      basename = require("path").basename,
-      join = require("path").join,
-      merge = require("deepmerge"),
-      yamljs = require("js-yaml"),
-      helpers = require("./helpers"),
-      values = require('object.values'),
-      chokidar = require("chokidar"),
-      cuid = require('cuid'),
-      EOL = require('os').EOL;
+const fs = require("fs")
+    , realpath = require("fs").realpathSync
+    , mkdirp = require('mkdirp').sync
+    , dirname = require("path").dirname
+    , basename = require("path").basename
+    , join = require("path").join
+    , merge = require("deepmerge")
+    , yamljs = require("js-yaml")
+    , helpers = require("./helpers")
+    , values = require('object.values')
+    , chokidar = require("chokidar")
+    , cuid = require('cuid')
+    , EOL = require('os').EOL
 
 module.exports = {
 
@@ -24,6 +24,11 @@ module.exports = {
      * Disable output print-out.
      */
     mute: false,
+
+    /**
+     * Enable strict mode.
+     */
+    strict: false,
 
     /**
      * Check watcher is running.
@@ -80,6 +85,7 @@ module.exports = {
     options: {
         '-o': 'setOutput',
         '--mute': 'setMute',
+        '--strict': 'setStrict',
         '--output': 'setOutput',
     },
 
@@ -110,7 +116,7 @@ module.exports = {
      * @returns {string}
      */
     run: function (args, callback) {
-        if (typeof args == "undefined" || !args || args.length === 0) {
+        if (typeof args === "undefined" || !args || args.length === 0) {
             return helpers.error("Yamlinc", "Missing arguments, type: yamlinc --help", callback);
         }
 
@@ -493,6 +499,16 @@ module.exports = {
         args.splice(args.indexOf('--mute'), 1);
         helpers.mute = true;
         this.mute = true;
+    },
+
+    /**
+     * Set strict mode.
+     *
+     * @param args
+     */
+    setMute: function (args) {
+        args.splice(args.indexOf('--strict'), 1);
+        this.strict = true;
     },
 
     /**
