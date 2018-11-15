@@ -91,6 +91,8 @@ module.exports = {
         '--mute': 'setMute',
         '--strict': 'setStrict',
         '--output': 'setOutput',
+        '--schema': 'setSchema',
+        '-s': 'setSchema',
     },
 
     /**
@@ -163,7 +165,14 @@ module.exports = {
             data = ''
 
         try {
-            data = yamljs.safeLoad(code);
+            if(this.schema) {
+              data = yamljs.safeLoad(code, {
+                schema: this.schema
+              });
+            }
+            else {
+              data = yamljs.safeLoad(code);
+            }
         } catch (exception) {
             helpers.error('Problem', `Error on file '${file}' ${exception.message}`);
         }
@@ -317,7 +326,7 @@ module.exports = {
      */
     spawnLoop: function (cmd, args) {
         if (this.spawnRunning) { return; }
-        
+
         this.spawnRunning = true;
         helpers.info('Command', cmd + ' ' + args.join(' '));
         helpers.spawn(cmd, args, () => {
@@ -409,7 +418,7 @@ module.exports = {
                 data[key] = values(data[key]);
                 continue;
             }
-			
+
             if( Array.isArray(data[key]) ) {
                 for( let arrKey in data[key] ) {
                     data[key][arrKey] = this.recursiveSanitize( data[key][arrKey] );
@@ -556,6 +565,21 @@ module.exports = {
                 this.outputFileName = args[index + 1];
             }
         }
+    },
+
+     /**
+     * Set schema to use, relative path only.
+     *
+     * @param args
+     */
+    setSchema: function(args) {
+       let index = args.indexOf('--schema');
+       if (index < 0) index = args.indexOf('-s');
+       if (index < 0) return;
+       const path = require('path');
+       const schemaPath = args[index + 1];
+       const fullPath = path.join(process.cwd(), schemaPath);
+       this.schema = require(fullPath);
     },
 
     /**

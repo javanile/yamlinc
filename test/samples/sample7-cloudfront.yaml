@@ -1,0 +1,5 @@
+ATableArn:
+  Description: Dynamo DB table ARN
+  Value: ATable.Arn
+  Export:
+    Name: !Sub ${Service}-ATable-${Environment}
