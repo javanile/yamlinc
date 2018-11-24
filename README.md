@@ -1,5 +1,5 @@
 # Yamlinc
-Create a composed YAML file using $include tag. 
+Create a composed YAML file using $include tag.
 
 [![NPM](https://nodei.co/npm/yamlinc.png?compact=true)](https://nodei.co/npm/yamlinc/)
 
@@ -60,7 +60,7 @@ $ yamlinc --watch spectacle -d my_swagger_doc.yml
 ```
 
 ## Feed your .inc.yml file
-If your application needs a copiled file as parameter you can simply compound and feed 
+If your application needs a copiled file as parameter you can simply compound and feed
 
 ```bash
 $ yamlinc --exec docker-compose -f docker-compose.yml
@@ -74,10 +74,17 @@ $ yamlinc --output - input.yml | nc seashells.io 1337
 ```
 
 ## Parse files to find syntax errors
-If your application needs stop after a syntax error or missing file inclusion use strict mode 
+If your application needs stop after a syntax error or missing file inclusion use strict mode
 
 ```bash
 $ yamlinc --strict settings.yml
+```
+
+### Use an external schema
+If you have your own or a third party schema you can pass it to yamlinc like this
+
+```bash
+$ yamlinc --schema ../node_modules/cloudformation-schema-js-yaml
 ```
 
 ## Create your scenario

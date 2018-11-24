@@ -14,4 +14,6 @@ Usage: yamlinc [option]... <file>
 
  --help                         Print software man page.
 
+ --schema [schema rel path]     Use an external schema, relative path
+
 Documentation can be found at https://github.com/javanile/yamlinc

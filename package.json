@@ -21,6 +21,7 @@
     "devDependencies": {
         "chai": "^3.5.0",
         "chai-fs": "^1.0.0",
+        "cloudformation-schema-js-yaml": "^1.0.1",
         "mocha": "^5.2.0"
     },
     "dependencies": {
@@ -30,6 +31,7 @@
         "deepmerge": "^2.0.1",
         "js-yaml": "^3.10.0",
         "mkdirp": "^0.5.1",
-        "object.values": "^1.0.4"
+        "object.values": "^1.0.4",
+        "save-dev": "^2.0.0"
     }
 }
