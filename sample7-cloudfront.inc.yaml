@@ -1,0 +1,12 @@
+## --------------------
+## DON'T EDIT THIS FILE
+## --------------------
+## Engine: yamlinc@0.1.6
+## Source: /home/francesco/Develop/Javanile/spectacle+yamlinc/node_modules/yamlinc/test/samples/sample7-cloudfront.yaml
+
+ATableArn:
+  Description: Dynamo DB table ARN
+  Value: ATable.Arn
+  Export:
+    Name:
+      'Fn::Sub': '${Service}-ATable-${Environment}'
