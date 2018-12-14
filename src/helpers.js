@@ -59,28 +59,27 @@ module.exports = {
      *
      * @param cmd
      * @param args
+     * @param cb
      */
     spawn: function (cmd, args, cb) {
-        var helpers = this;
-
         // Running command
-        var wrapper = spawn(cmd, args);
+        let wrapper = spawn(cmd, args);
 
         // Attach stdout handler
-        wrapper.stdout.on('data', function (data) {
-            return process.stdout.write(data.toString());
+        wrapper.stdout.on('data', (data) => {
+            return process.stdout.write(data.toString())
         });
 
         // Attach stderr handler
-        wrapper.stderr.on('data', function (data) {
-            return process.stdout.write(data.toString());
+        wrapper.stderr.on('data', (data) => {
+            return process.stdout.write(data.toString())
         });
 
         // Attach exit handler
-        wrapper.on('exit', function (code) {
-            helpers.info('Command', 'exit code ' + code);
-            return typeof cb == 'function' ? cb() : null;
-        });
+        wrapper.on('exit', (code) => {
+            this.info('Command', 'exit code ' + code);
+            return this.isFunction(cb) ? cb() : null
+        })
     },
 
     /**
@@ -128,9 +127,12 @@ module.exports = {
     },
 
     /**
+     * Check if argument is a function.
      *
+     * @param value
+     * @returns boolean
      */
     isFunction: function (value) {
-        return typeof value === "function";
+        return typeof value === 'function'
     }
 };

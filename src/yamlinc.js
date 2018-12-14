@@ -267,7 +267,7 @@ module.exports = {
     runCommandWatch: function (args, callback) {
         args.splice(args.indexOf('--watch'), 1);
 
-        let input = this.getInputFiles(args);
+        let input = this.getInputFiles(args, true);
         if (!input) {
             return helpers.error('Problem', 'missing input file to watch.', callback);
         }
@@ -308,7 +308,7 @@ module.exports = {
     runCommandExec: function (args, callback) {
         args.splice(args.indexOf('--exec'), 1);
 
-        let input = this.getInputFiles(args);
+        let input = this.getInputFiles(args, true);
         if (!input) {
             return helpers.error('Problem', 'missing input file to exec.', callback);
         }
@@ -477,7 +477,7 @@ module.exports = {
      */
     isArgumentInputFile: function (args, i) {
         return args.hasOwnProperty(i)
-            && args[i].charAt(0) != '-'
+            && args[i].charAt(0) !== '-'
             && args[i].match(this.extensionsRule);
     },
 
@@ -487,11 +487,11 @@ module.exports = {
      * @param args
      * @returns {{file: string, incFile: string}}
      */
-    getInputFiles: function (args) {
+    getInputFiles: function (args, absolute) {
         for (let i in args) {
             if (this.isArgumentInputFile(args, i)) {
                 let file = args[i];
-                args[i] = this.getIncFile(file);
+                args[i] = this.getIncFile(file, absolute);
                 return { file: file, incFile: args[i] };
             }
         }
@@ -501,18 +501,17 @@ module.exports = {
      * Get .inc.yml file base on input.
      *
      * @param file
+     * @param absolute
      * @returns {void|string}
      */
-    getIncFile: function (file) {
-        if (this.outputMode === 'STDOUT') return '';
+    getIncFile: function (file, absolute) {
+        if (this.outputMode === 'STDOUT') { return '' }
+        if (!!this.outputFileName) { return this.outputFileName }
 
-        if (this.outputFileName && this.outputFileName !== '') return this.outputFileName
-        else {
-            for (let i in this.extensions) {
-                if (this.extensions.hasOwnProperty(i)) {
-                    let rule = new RegExp('\\.(' + this.extensions[i] + ')$', 'i');
-                    if (file.match(rule)) { return basename(file).replace(rule, '.inc.$1'); }
-                }
+        for (let i in this.extensions) {
+            if (this.extensions.hasOwnProperty(i)) {
+                let rule = new RegExp('\\.(' + this.extensions[i] + ')$', 'i')
+                if (file.match(rule)) { return (!!absolute ? file : basename(file)).replace(rule, '.inc.$1') }
             }
         }
     },
@@ -583,19 +582,15 @@ module.exports = {
     },
 
     /**
-     * Get sotware help.
-     *
-     * @param args
+     * Get software help.
      */
-    getHelp: function (args) {
+    getHelp: function () {
         let help = join(__dirname, '../help/help.txt');
         return console.log(fs.readFileSync(help) + '');
     },
 
     /**
      * Get software version.
-     *
-     * @param args
      */
     getVersion: function () {
         let info = JSON.parse(fs.readFileSync(join(__dirname, '../package.json')), 'utf8');
