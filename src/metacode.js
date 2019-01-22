@@ -4,16 +4,29 @@
  * MIT Licensed
  */
 
-/**
- * Retrive file yaml meta code.
- *
- * @param file input file to load
- * @returns {string} yaml meta code
- */
-loadMetacode: function (file) {
-    let yamlinc = this;
-    return fs.readFileSync(file).toString()
-        .replace(this.getRegExpIncludeTag(), function (tag) {
-            return tag.replace(yamlinc.includeTag, yamlinc.includeTag + '_' + cuid());
-        });
-},
+const fs = require('fs')
+    , cuid = require('cuid')
+
+module.exports = {
+    /**
+     * RegExp to match include tag into yaml code.
+     *
+     * @returns {RegExp}
+     */
+    getRegExpIncludeTag: function () {
+        return new RegExp('^[ \\t]*' + this.escapeTag + '[ \\t]*:', 'gmi');
+    },
+
+    /**
+     * Retrive file meta code.
+     *
+     * @param file input file to load
+     * @returns {string} yaml meta code
+     */
+    parse: function (file, tag) {
+        let code = fs.readFileSync(file).toString(),
+            expr = this.getRegExpIncludeTag(file, includeTag)
+
+        return code.replace(expr, (token) => token.replace(tag, tag + '_' + cuid()))
+    }
+}

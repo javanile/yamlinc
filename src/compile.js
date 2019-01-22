@@ -15,12 +15,12 @@
  */
 compile: function (file, incFile, callback) {
     if (!helpers.fileExists(file)) {
-        return helpers.error('Problem', "file '" + file + "' not found.", callback);
+        return helpers.error('Problem', `file '${file}' not found.`, callback);
     }
 
     // Compile and prepare disclaimer
     helpers.info("Analize", file);
-    let data = this.resolve(file);
+    let data = resolve.parse(file);
     let disclaimer = [
         "## --------------------",
         "## DON'T EDIT THIS FILE",

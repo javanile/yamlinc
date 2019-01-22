@@ -95,6 +95,7 @@ module.exports = {
         '-j': 'setJson', '--json': 'setJson',
         '-a': 'setAmend', '--amend': 'setAmend',
         '-S': 'setSchema', '--schema': 'setSchema',
+        '-i': 'setInline', '--inline': 'setInline',
         '-o': 'setOutput', '--output': 'setOutput',
         '-s': 'setSilent', '--silent': 'setSilent',
     },
@@ -256,14 +257,6 @@ module.exports = {
             || !this.watching;
     },
 
-    /**
-     * RegExp to match include tag into yaml code.
-     *
-     * @returns {RegExp}
-     */
-    getRegExpIncludeTag: function () {
-        return new RegExp('^[ \\t]*' + this.escapeTag + '[ \\t]*:', 'gmi');
-    },
 
     /**
      * Check if object key match include tag.
@@ -365,4 +358,4 @@ module.exports = {
         let help = join(__dirname, '../help/help.txt');
         return console.log(fs.readFileSync(help) + '');
     }
-};
+}

@@ -2,15 +2,19 @@ Usage: yamlinc [option]... <file>
 
  -R, --run [executable args...]    Launch executable and feed yaml file.
 
- -W, --watch [executable args...]  Watch file changes during running executable.
+ -W, --watch [executable args...]  Watch file changes during running command.
 
- -S, --schema [schema rel path]    Use an external schema, relative path
+ -S, --schema [schema file path]   Use an external schema, relative path.
 
- -s, --strict                      Enable strict mode.
-                                   Exit if errors occur (exit code 1).
+ -i, --inline [yaml string]        Parse YAML code passed as string.
 
  -o, --output [filename]           Specify output file name.
                                    If '-' is supplied, will write to STDOUT.
+
+ -a, --amend                       Enable amend mode.
+                                   Exit if errors occur (exit code 1).
+
+ -s, --silent                      Suppress generated output.
 
  -v, --version                     Print software version.
 
