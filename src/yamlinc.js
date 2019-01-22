@@ -5,12 +5,12 @@
  */
 
 const fs = require('fs')
-    , mkdirp = require('mkdirp').sync
+    //, mkdirp = require('mkdirp').sync
     , dirname = require('path').dirname
     , basename = require('path').basename
     , join = require('path').join
-    , merge = require('deepmerge')
-    , yamljs = require('js-yaml')
+    //, merge = require('deepmerge')
+    //, yamljs = require('js-yaml')
     , helpers = require('./helpers')
     , values = require('object.values')
     , chokidar = require('chokidar')
@@ -158,6 +158,22 @@ module.exports = {
     },
 
     /**
+     * Run command after compile file.
+     */
+    runExecutable: function (args, callback) {
+        let input = this.getInputFiles(args, true);
+        if (!input) {
+            return helpers.error('Problem', 'missing input file to exec.', callback);
+        }
+
+        this.compile(input.file, input.incFile, callback);
+
+        let cmd = args.shift();
+
+        this.spawn(cmd, args);
+    },
+
+    /**
      *
      */
     watchExecutable: function (args, callback) {
@@ -194,33 +210,14 @@ module.exports = {
 
         setTimeout(() => {
             this.watching = true;
-            this.spawnLoop(cmd, args);
+            this.spawn(cmd, args);
         }, 1000);
-    },
-
-    /**
-     * Run command after compile file.
-     */
-    runCommandExec: function (args, callback) {
-        args.splice(args.indexOf('--exec'), 1);
-
-        let input = this.getInputFiles(args, true);
-        if (!input) {
-            return helpers.error('Problem', 'missing input file to exec.', callback);
-        }
-
-        this.compile(input.file, input.incFile, callback);
-
-        let cmd = args.shift();
-
-        helpers.info('Command', cmd + ' ' + args.join(' '));
-        helpers.spawn(cmd, args);
     },
 
     /**
      * Repeat spawn command
      */
-    spawnLoop: function (cmd, args) {
+    spawn: function (cmd, args) {
         if (this.running) { return; }
 
         this.running = true;
@@ -279,6 +276,24 @@ module.exports = {
         return key.match(new RegExp('^' + this.escapeTag + '_[a-z0-9]{25}$'));
     },
 
+    /**
+     * Set JSON mode.
+     *
+     * @param args
+     */
+    setJson: function (args) {
+        this.json = true;
+    },
+
+    /**
+     * Set strict mode.
+     *
+     * @param args
+     */
+    setAmend: function (args) {
+        helpers.amend = true;
+        this.amend = true;
+    },
 
     /**
      * Set silent mode.
@@ -290,16 +305,6 @@ module.exports = {
         args.splice(args.indexOf('-s'), 1);
         helpers.silent = true;
         this.silent = true;
-    },
-
-    /**
-     * Set strict mode.
-     *
-     * @param args
-     */
-    setAmend: function (args) {
-        helpers.amend = true;
-        this.amend = true;
     },
 
     /**
@@ -319,8 +324,7 @@ module.exports = {
             helpers.error('Problem', `Missing output file name, type: 'yamlinc --help'.`);
         } else {
             if (args[index + 1] === '-') {
-                this.mute = true;
-                helpers.mute = true;
+                this.setSilent();
                 this.outputMode = 'STDOUT'
                 this.outputFileName = '';
             } else {
@@ -330,7 +334,7 @@ module.exports = {
         }
     },
 
-     /**
+    /**
      * Set schema to use, relative path only.
      *
      * @param args

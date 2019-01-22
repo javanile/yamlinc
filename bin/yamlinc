@@ -10,7 +10,7 @@
 const fs = require('fs')
     , cwd = process.cwd()
     , join = require('path').join
-    , local = join(cwd, './node_modules/yamlinc/src/yamlinc.js')
-    , yamlinc = fs.existsSync(local) ? local : '../src/yamlinc.js'
+    , local = join(cwd, './node_modules/yamlinc')
+    , yamlinc = fs.existsSync(local) ? local : '..'
 
 require(yamlinc).run(process.argv.slice(2))
