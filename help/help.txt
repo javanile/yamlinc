@@ -1,19 +1,19 @@
 Usage: yamlinc [option]... <file>
 
- --watch [executable args...]   Watch file changes during running executable.
+ -R, --run [executable args...]    Launch executable and feed yaml file.
 
- --exec [executable args...]    Launch executable and feed yaml file.
+ -W, --watch [executable args...]  Watch file changes during running executable.
 
- --strict                       Enable strict mode.
-                                Exit if errors occur (exit code 1).
+ -S, --schema [schema rel path]    Use an external schema, relative path
 
- -o, --output [filename]        Specify output file name.
-                                If '-' is supplied, will write to STDOUT.
+ -s, --strict                      Enable strict mode.
+                                   Exit if errors occur (exit code 1).
 
- --version                      Print software version.
+ -o, --output [filename]           Specify output file name.
+                                   If '-' is supplied, will write to STDOUT.
 
- --help                         Print software man page.
+ -v, --version                     Print software version.
 
- --schema [schema rel path]     Use an external schema, relative path
+ -h, --help                        Print software man page.
 
 Documentation can be found at https://github.com/javanile/yamlinc
