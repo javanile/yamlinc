@@ -125,4 +125,14 @@ describe('Testing Yamlinc', function () {
 
     });
 
+    describe('Merging', function () {
+
+        it('Merge two files', function () {
+            chai.assert.deepEqual(
+                yamlinc.resolve(__dirname + '/samples/merge2files.yml'),
+                yaml.safeLoad(fs.readFileSync(__dirname + '/samples/merge2files-verify.yml'))
+            );
+        });
+
+    });
 });
