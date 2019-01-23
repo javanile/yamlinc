@@ -5,17 +5,12 @@
  */
 
 const fs = require('fs')
-    //, mkdirp = require('mkdirp').sync
     , dirname = require('path').dirname
     , basename = require('path').basename
     , join = require('path').join
     //, merge = require('deepmerge')
-    //, yamljs = require('js-yaml')
     , helpers = require('./helpers')
-    , values = require('object.values')
     , chokidar = require('chokidar')
-    , cuid = require('cuid')
-    , EOL = require('os').EOL
 
 module.exports = {
 
@@ -47,22 +42,12 @@ module.exports = {
     /**
      * Define the include tag.
      */
-    includeTag: '$include',
-
-    /**
-     * RegExp version of include tag.
-     */
-    escapeTag: '\\$include',
+    tag: '$include',
 
     /**
      * Supported file extensions.
      */
     extensions: ['yml', 'yaml', 'json'],
-
-    /**
-     * RegExp to catch supported files.
-     */
-    extensionsRule: new RegExp('\\.(yml|yaml|json)$', 'i'),
 
     /**
      * RegExp to catch .inc.* files.
@@ -76,7 +61,7 @@ module.exports = {
      * FILE
      * STDOUT
      */
-    outputMode: 'FILE',
+    output: 'FILE',
 
     /**
      * Output file name.  Default: <inputFilePrefix>.inc.<inputFileSuffix>
@@ -105,7 +90,7 @@ module.exports = {
      */
     commands: {
         '-R': 'runExecutable', '--run': 'runExecutable',
-        '-W': 'watchExcutable', '--watch': 'watchExcutable',
+        '-W': 'watchExecutable', '--watch': 'watchExecutable',
         '-v': 'getVersion', '--version': 'getVersion',
         '-h': 'getHelp', '--help': 'getHelp',
     },
@@ -127,8 +112,8 @@ module.exports = {
      * @returns {string}
      */
     run: function (args, callback) {
-        if (typeof args === "undefined" || !args || args.length === 0) {
-            return helpers.error("Problem", "Missing arguments, type: 'yamlinc --help'.", callback);
+        if (typeof args === 'undefined' || !args || args.length === 0) {
+            return helpers.error('Yamlinc', `Missing arguments, try 'yamlinc --help'.`, callback);
         }
 
         // handle command-line options
@@ -140,8 +125,11 @@ module.exports = {
 
         // handle command-line commands
         for (let command in this.commands) {
-            if (args.indexOf(command) > -1) {
-                return this[this.commands[command]](args, callback);
+            let index = args.indexOf(command)
+            if (index > -1) {
+                args.splice(index, 1)
+                let func = this[this.commands[command]]
+                return func(args, callback)
             }
         }
 
@@ -178,8 +166,6 @@ module.exports = {
      *
      */
     watchExecutable: function (args, callback) {
-        args.splice(args.indexOf('--watch'), 1);
-
         let input = this.getInputFiles(args, true);
         if (!input) {
             return helpers.error('Problem', 'missing input file to watch.', callback);
@@ -199,20 +185,11 @@ module.exports = {
 
         let cmd = args.shift();
 
-        watcher
-            .on('change', (file) => { this.handleFileChange(file, input, cmd, args) })
-            .on('unlink', (file) => { this.handleFileChange(file, input, cmd, args) });
+        watcher.on('change', (file) => this.handleFileChange(file, input, cmd, args))
+        watcher.on('unlink', (file) => this.handleFileChange(file, input, cmd, args))
 
-        setTimeout(() => {
-            watcher.on('add', (file) => {
-                this.handleFileChange(file, input, cmd, args);
-            });
-        }, 15000);
-
-        setTimeout(() => {
-            this.watching = true;
-            this.spawn(cmd, args);
-        }, 1000);
+        setTimeout(() => { this.watching = true; this.spawn(cmd, args) }, 1000);
+        setTimeout(() => { watcher.on('add', (file) => this.handleFileChange(file, input, cmd, args))}, 15000);
     },
 
     /**

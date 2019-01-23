@@ -5,6 +5,7 @@
  */
 
 const fs = require('fs')
+    , yamljs = require('js-yaml')
     , metacode = require('./metacode')
 
 module.exports = {
@@ -14,31 +15,26 @@ module.exports = {
      * @param file input file to resolve
      * @returns {string} yaml code
      */
-    resolve: function (file) {
-        let base = dirname(file),
+    parse: function (file) {
+        let path = dirname(file),
             code = metacode.parse(file),
+            opts = {},
             data = ''
 
         try {
-            if (this.schema) {
-                data = yamljs.safeLoad(code, {
-                    schema: this.schema
-                });
-            }
-            else {
-                data = yamljs.safeLoad(code);
-            }
-        } catch (exception) {
-            helpers.error('Problem', `Error on file '${file}' ${exception.message}`);
+            if (this.schema) { opts.schema = this.schema }
+            data = yamljs.safeLoad(code, opts);
+        } catch (error) {
+            helpers.error('Problem', `Error on file '${file}' ${error.message}`);
         }
 
-        this.currentResolve = file;
-        this.recursiveResolve(data, base);
-        this.recursiveSanitize(data);
+        this.current = file;
+        this.resolve(data, path);
+
+        sanitize(data);
 
         return data;
     },
-
 
     /**
      * Walk through array and find include tag.
@@ -46,7 +42,7 @@ module.exports = {
      * @param array  $yaml       reference of an array
      * @param string $includeTag tag to include file
      */
-    recursiveResolve: function (data, base) {
+    resolve: function (data, path) {
         if (typeof data !== 'object') {
             return;
         }
@@ -55,21 +51,19 @@ module.exports = {
         for (let key in data) {
             if (this.isKeyMatchIncludeTag(key)) {
                 if (typeof data[key] === "string" && data[key]) {
-                    includes = this.recursiveInclude(base, data[key], includes);
+                    includes = this.include(path, data[key], includes);
                 } else if (typeof data[key] === "object") {
                     for (let index in data[key]) {
-                        includes = this.recursiveInclude(base, data[key][index], includes);
+                        includes = this.include(path, data[key][index], includes);
                     }
                 }
                 delete data[key];
                 continue;
             }
-            this.recursiveResolve(data[key], base);
+            this.resolve(data[key], path);
         }
 
-        if (helpers.isNotEmptyObject(includes)) {
-            data = Object.assign(data, merge(data, includes));
-        } else if (helpers.isNotEmptyArray(includes)) {
+        if (helpers.isNotEmptyObjectOrArray(includes)) {
             data = Object.assign(data, merge(data, includes));
         }
 
@@ -82,15 +76,13 @@ module.exports = {
      * @param includes
      * @returns {*}
      */
-    recursiveInclude: function (base, file, includes) {
+    include: function (base, file, includes) {
         if (helpers.fileExists(base + '/' + file)) {
             helpers.info('Include', file);
 
             let include = this.resolve(base + '/' + file);
 
-            if (helpers.isNotEmptyObject(include)) {
-                includes = Object.assign(includes, merge(includes, include));
-            } else if (helpers.isNotEmptyArray(include)) {
+            if (helpers.isNotEmptyObjectOrArray(include)) {
                 includes = Object.assign(includes, merge(includes, include));
             }
 

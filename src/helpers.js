@@ -28,7 +28,7 @@ module.exports = {
      * @param callback
      */
     error: function (type, error, callback) {
-        if (!this.mute) { console.log(' >',colors.red.bold(type), ':', error) }
+        if (!this.mute) { console.log(' >',colors.red.bold(type), '|', error) }
         if (this.strict) { process.exit(1) }
         return this.isFunction(callback) && callback({ type: type, error: error });
     },
@@ -108,6 +108,13 @@ module.exports = {
         return value
             && Array.isArray(value)
             && value.length > 0;
+    },
+
+    /**
+     *
+     */
+    isNotEmptyObjectOrArray: function (value) {
+        return this.isNotEmptyObject(include) || this.isNotEmptyArray(include)
     },
 
     /**

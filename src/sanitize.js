@@ -4,29 +4,31 @@
  * MIT Licensed
  */
 
+const values = require('object.values')
+    , helpers = require('./helpers')
+
 /**
- * Apply object sanitize.
+ * Apply object recursive sanitize.
  *
  * @param data
  * @returns {*}
  */
-recursiveSanitize: function(data) {
-    if (!helpers.isNotEmptyObject(data)) { return data; }
-
-    for (let key in data) {
-        if (helpers.isObjectizedArray(data[key])) {
-            data[key] = values(data[key]);
-            continue;
-        }
-
-        if (Array.isArray(data[key]) ) {
-            for( let arrKey in data[key] ) {
-                data[key][arrKey] = this.recursiveSanitize( data[key][arrKey] );
+module.exports = function sanitize(data) {
+    if (helpers.isNotEmptyObject(data)) {
+        for (let key in data) {
+            if (helpers.isObjectizedArray(data[key])) {
+                data[key] = values(data[key]);
+                continue;
             }
-        } else {
-            data[key] = this.recursiveSanitize(data[key]);
+            if (Array.isArray(data[key]) ) {
+                for (let arrayKey in data[key] ) {
+                    data[key][arrayKey] = sanitize(data[key][arrayKey]);
+                }
+            } else {
+                data[key] = sanitize(data[key]);
+            }
         }
     }
 
     return data;
-},
+}

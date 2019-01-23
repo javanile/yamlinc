@@ -30,6 +30,11 @@ getInputFile: function (args) {
  * @returns {boolean}
  */
 isArgumentInputFile: function (args, i) {
+    /**
+     * RegExp to catch supported files.
+     */
+    extensionsRule: new RegExp('\\.(yml|yaml|json)$', 'i'),
+
     return args.hasOwnProperty(i)
         && args[i].charAt(0) !== '-'
         && args[i].match(this.extensionsRule);
