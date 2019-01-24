@@ -15,7 +15,7 @@
     },
     "preferGlobal": true,
     "scripts": {
-        "test": "mocha --reporter spec --recursive | sed '/^\\s*$/d'",
+        "test": "mocha --reporter spec --recursive",
         "coverage": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec --recursive"
     },
     "devDependencies": {
