@@ -5,15 +5,18 @@
  */
 
 const fs = require('fs')
+    , resolve = require('path').resolve
     , dirname = require('path').dirname
     , basename = require('path').basename
     , join = require('path').join
-    //, merge = require('deepmerge')
-    , helpers = require('./helpers')
     , chokidar = require('chokidar')
+    //, merge = require('deepmerge')
+    , compiler = require('./compiler')
+    , helpers = require('./helpers')
+    , tag = require('./tag')
+    , cli = require('./cli')
 
 module.exports = {
-
     /**
      * Output in JSON format.
      */
@@ -50,11 +53,6 @@ module.exports = {
     extensions: ['yml', 'yaml', 'json'],
 
     /**
-     * RegExp to catch .inc.* files.
-     */
-    incExtensionsRule: new RegExp('\\.inc\\.(yml|yaml|json)$', 'i'),
-
-    /**
      * Output mode.  Default: FILE
      *
      * Possible modes:
@@ -62,16 +60,6 @@ module.exports = {
      * STDOUT
      */
     output: 'FILE',
-
-    /**
-     * Output file name.  Default: <inputFilePrefix>.inc.<inputFileSuffix>
-     */
-    outputFileName: '',
-
-    /**
-     * Output file name.  Default: <inputFilePrefix>.inc.<inputFileSuffix>
-     */
-    currentResolve: null,
 
     /**
      * Supported options.
@@ -98,7 +86,7 @@ module.exports = {
     /**
      * Called for retrieve internal debug.
      *
-     * @name debugCallback
+     * @name debugcb
      * @function
      * @param {Object} debug information about the error
      * @return undefined
@@ -108,12 +96,12 @@ module.exports = {
      * Command line entry-point.
      *
      * @param {array} args a list of arguments
-     * @param {debugCallback} callback retrieve debug information
+     * @param {debugcb} cb retrieve debug information
      * @returns {string}
      */
-    run: function (args, callback) {
+    run: function (args, cb) {
         if (typeof args === 'undefined' || !args || args.length === 0) {
-            return helpers.error('Yamlinc', `Missing arguments, try 'yamlinc --help'.`, callback);
+            return helpers.error('Yamlinc', `Missing arguments, try 'yamlinc --help'.`, cb);
         }
 
         // handle command-line options
@@ -123,65 +111,57 @@ module.exports = {
             }
         }
 
+        // prepare running environment
+        compiler.setTag(tag(this.tag))
+        cli.setExtensions(this.extensions)
+
         // handle command-line commands
         for (let command in this.commands) {
             let index = args.indexOf(command)
             if (index > -1) {
                 args.splice(index, 1)
                 let func = this[this.commands[command]]
-                return func(args, callback)
+                return func(args, cb)
             }
         }
 
         // looking for file in arguments
-        let file = this.getInputFile(args);
-        if (!file) {
-            return helpers.error("Problem", "Missing file name, type: 'yamlinc --help'", callback);
-        }
+        let inputFile = cli.getInputFile(args);
+        if (!fileFile) { return helpers.error("Problem", "Missing file name, type: 'yamlinc --help'", cb) }
 
         // generate name of .inc.yml output file
-        let incFile = this.getIncFile(file);
+        let outputFile = cli.getOutputFile(file);
 
         // compile yaml files
-        return this.compile(file, incFile, callback);
+        return compiler.parse(inputFile, outputFile, cb);
     },
 
     /**
      * Run command after compile file.
      */
-    runExecutable: function (args, callback) {
-        let input = this.getInputFiles(args, true);
-        if (!input) {
-            return helpers.error('Problem', 'missing input file to exec.', callback);
-        }
+    runExecutable: function (args, cb) {
+        let files = this.getFiles(args, true);
+        if (!files) { return helpers.error('Problem', 'Missing input file on executable.', cb) }
 
-        this.compile(input.file, input.incFile, callback);
+        compiler.parse(files.input, files.output, cb);
 
-        let cmd = args.shift();
-
-        this.spawn(cmd, args);
+        this.spawn(args.shift(), args);
     },
 
     /**
+     * Watch running executable and repeat compile after changes.
      *
      */
-    watchExecutable: function (args, callback) {
-        let input = this.getInputFiles(args, true);
-        if (!input) {
-            return helpers.error('Problem', 'missing input file to watch.', callback);
-        }
+    watchExecutable: function (args, cb) {
+        let files = cli.getFiles(args, true);
+        if (!files) { return helpers.error('Problem', 'Missing input file to watch.', cb) }
 
         let match = [];
-        for (let i in this.extensions) {
-            match.push('./**/*.*');
-        }
+        for (let i in this.extensions) { match.push('./**/*.*') }
 
-        let watcher = chokidar.watch(match, {
-            persistent: true,
-            usePolling: true
-        });
+        let watcher = chokidar.watch(match, { persistent: true, usePolling: true })
 
-        this.compile(input.file, input.incFile, callback);
+        compiler.parse(files.input, files.output, cb);
 
         let cmd = args.shift();
 
@@ -209,17 +189,15 @@ module.exports = {
      * Handle file changes during watcher.
      *
      * @param file
-     * @param input
+     * @param files
      * @param cmd
      * @param args
      */
-    handleFileChange: function (file, input, cmd, args) {
-        if (this.skipFileChange(file)) { return; }
+    handleFileChange: function (file, files, cmd, args) {
+        if (this.skipFileChange(file, files)) { return }
         helpers.info('Changed', file);
-        this.compile(input.file, input.incFile);
-        if (!this.running) {
-            this.spawnLoop(cmd, args);
-        }
+        compiler.parse(files.input, files.output);
+        if (!this.running) { this.spawn(cmd, args) }
     },
 
     /**
@@ -228,22 +206,10 @@ module.exports = {
      * @param file
      * @returns {boolean|Array|{index: number, input: string}|*}
      */
-    skipFileChange: function (file) {
-        return file.match(this.incExtensionsRule)
-            || !file.match(this.extensionsRule)
+    skipFileChange: function (file, files) {
+        return resolve(file) == resolve(files.output)
+            || !file.match(cli.inputFileRegExp)
             || !this.watching;
-    },
-
-
-    /**
-     * Check if object key match include tag.
-     *
-     * @param key
-     * @param includeTag
-     * @returns {Array|{index: number, input: string}|*}
-     */
-    isKeyMatchIncludeTag: function (key) {
-        return key.match(new RegExp('^' + this.escapeTag + '_[a-z0-9]{25}$'));
     },
 
     /**
@@ -326,6 +292,13 @@ module.exports = {
     getVersion: function () {
         let info = JSON.parse(fs.readFileSync(join(__dirname, '../package.json')), 'utf8');
         return info.name + '@' + info.version;
+    },
+
+    /**
+     * Get software version.
+     */
+    getVersion: function () {
+        return console.log(helpers.getVersion());
     },
 
     /**

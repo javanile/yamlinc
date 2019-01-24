@@ -9,12 +9,25 @@ const fs = require('fs')
 
 module.exports = {
     /**
+     *
+     */
+    tag: null,
+
+    /**
      * RegExp to match include tag into yaml code.
      *
      * @returns {RegExp}
      */
-    getRegExpIncludeTag: function () {
-        return new RegExp('^[ \\t]*' + this.escapeTag + '[ \\t]*:', 'gmi');
+    setTag: function(tag) {
+        this.tag = tag
+    },
+
+    /**
+     *
+     * @param file
+     */
+    getTagRegExp: function(file) {
+        return this.tagRegExp;
     },
 
     /**
@@ -23,10 +36,12 @@ module.exports = {
      * @param file input file to load
      * @returns {string} yaml meta code
      */
-    parse: function (file, tag) {
+    parse: function (file) {
         let code = fs.readFileSync(file).toString(),
-            expr = this.getRegExpIncludeTag(file, includeTag)
+            expr = this.getTagRegExp(file)
 
-        return code.replace(expr, (token) => token.replace(tag, tag + '_' + cuid()))
+        return code.replace(expr, (token) => {
+            return token.replace(this.tag.name, this.tag.name + '_' + cuid())
+        })
     }
 }

@@ -6,9 +6,24 @@
 
 const fs = require('fs')
     , yamljs = require('js-yaml')
+    , dirname = require('path').dirname
+    , sanitize = require('./sanitize')
     , metacode = require('./metacode')
+    , helpers = require('./helpers')
 
 module.exports = {
+    /**
+     * Output file name.  Default: <inputFilePrefix>.inc.<inputFileSuffix>
+     */
+    current: null,
+
+    /**
+     *
+     */
+    setTag: function(tag) {
+        metacode.setTag(tag)
+    },
+
     /**
      * Load file and resolve all inclusion.
      *
@@ -96,4 +111,15 @@ module.exports = {
 
         return includes;
     },
+
+    /**
+     * Check if object key match include tag.
+     *
+     * @param key
+     * @param includeTag
+     * @returns {Array|{index: number, input: string}|*}
+     */
+    isKeyMatchIncludeTag: function (key) {
+        return key.match(new RegExp('^' + this.escapeTag + '_[a-z0-9]{25}$'));
+    }
 }

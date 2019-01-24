@@ -4,9 +4,10 @@
  * MIT Licensed
  */
 
-const fs = require("fs")
-    , colors = require("colors")
-    , spawn = require("child_process").spawn
+const fs = require('fs')
+    , join = require('path').join
+    , colors = require('colors')
+    , spawn = require('child_process').spawn
 
 module.exports = {
 
@@ -92,29 +93,24 @@ module.exports = {
     },
 
     /**
-     *
+     * Check if value is an object but not empty.
      */
     isNotEmptyObject: function (value) {
-        return value
-            && !Array.isArray(value)
-            && typeof value === 'object'
-            && Object.keys(value).length;
+        return value && !Array.isArray(value) && typeof value === 'object' && Object.keys(value).length;
     },
 
     /**
-     *
+     * Check if value is an array but not empty.
      */
     isNotEmptyArray: function (value) {
-        return value
-            && Array.isArray(value)
-            && value.length > 0;
+        return value && Array.isArray(value) && value.length > 0;
     },
 
     /**
-     *
+     * Check if value is an array or object but not empty.
      */
     isNotEmptyObjectOrArray: function (value) {
-        return this.isNotEmptyObject(include) || this.isNotEmptyArray(include)
+        return this.isNotEmptyObject(value) || this.isNotEmptyArray(value)
     },
 
     /**
@@ -141,5 +137,13 @@ module.exports = {
      */
     isFunction: function (value) {
         return typeof value === 'function'
-    }
-};
+    },
+
+    /**
+     * Get software version.
+     */
+    getVersion: function () {
+        let info = JSON.parse(fs.readFileSync(join(__dirname, '../package.json')), 'utf8');
+        return info.name + '@' + info.version;
+    },
+}
