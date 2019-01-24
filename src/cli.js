@@ -13,6 +13,12 @@ const fs = require('fs')
     , helpers = require('./helpers')
 
 module.exports = {
+
+    /**
+     * Supported file extensions.
+     */
+    extensions: null,
+
     /**
      * RegExp to catch supported files.
      */
@@ -24,23 +30,23 @@ module.exports = {
      * @param Array extensions
      */
     setExtensions: function(extensions) {
+        this.extensions = extensions
         this.inputFileRegExp = new RegExp('\\.(' + extensions.join('|') + ')$', 'i')
     },
 
     /**
-     * Get input file to parse inside command-line arguments.
+     * Get input file and incFile by cli arguments.
      *
      * @param args
-     * @returns {*}
+     * @returns {{file: string, incFile: string}}
      */
-    getInputFile: function (args) {
+    getFiles: function (args, output, absolute) {
         // Go in reverse since the filename is supposed to be last
         for (let index = args.length - 1; index >= 0; index--) {
-
             if (this.isInputFile(args, index)) {
-                let file = args[index];
-                args.splice(index, 1);
-                return file;
+                let file = args[index]
+                args[index] = this.getOutputFile(file, output, absolute)
+                return { input: file, output: args[index] }
             }
         }
     },
@@ -59,44 +65,22 @@ module.exports = {
     },
 
     /**
-     * Get input file and incFile by cli arguments.
-     *
-     * @param args
-     * @returns {{file: string, incFile: string}}
-     */
-    getFiles: function (args, absolute) {
-        for (let index in args) {
-            console.log(args[index]);
-            if (this.isInputFile(args, index)) {
-                let file = args[index];
-                args[index] = this.getOutputFile(file, absolute);
-                return {input: file, output: args[index]};
-            }
-        }
-    },
-
-    /**
-     * Get .inc.yml file base on input.
+     * Get .inc.yml file base on input and output.
      *
      * @param file
      * @param absolute
      * @returns {void|string}
      */
-    getOutputFile: function (file, absolute) {
-        if (this.outputMode === 'STDOUT') {
-            return ''
-        }
-        if (!!this.outputFileName) {
-            return this.outputFileName
-        }
+    getOutputFile: function (file, output, absolute) {
+        if (!!output) { return output }
 
-        for (let i in this.extensions) {
-            if (this.extensions.hasOwnProperty(i)) {
-                let rule = new RegExp('\\.(' + this.extensions[i] + ')$', 'i')
+        for (let index in this.extensions) {
+            if (this.extensions.hasOwnProperty(index)) {
+                let rule = new RegExp('\\.(' + this.extensions[index] + ')$', 'i')
                 if (file.match(rule)) {
                     return (!!absolute ? file : basename(file)).replace(rule, '.inc.$1')
                 }
             }
         }
-    },
+    }
 }

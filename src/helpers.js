@@ -14,7 +14,7 @@ module.exports = {
     /**
      * Mute print info/error message
      */
-    mute: false,
+    silent: false,
 
     /**
      * Mute print info/error message
@@ -29,8 +29,8 @@ module.exports = {
      * @param callback
      */
     error: function (type, error, callback) {
-        if (!this.mute) { console.log(' >',colors.red.bold(type), '|', error) }
-        if (this.strict) { process.exit(1) }
+        if (!this.silent) { console.log(' >',colors.red.bold(type), '|', error) }
+        if (this.amend) { process.exit(1) }
         return this.isFunction(callback) && callback({ type: type, error: error });
     },
 
@@ -41,8 +41,8 @@ module.exports = {
      * @param info
      */
     info: function (msg, info) {
-        if (this.mute) { return; }
-        console.log('  ', colors.gray.bold(msg), ':', info);
+        if (this.silent) { return; }
+        console.log('  ', colors.gray.bold(msg), '|', info);
     },
 
     /**
@@ -52,8 +52,8 @@ module.exports = {
      * @param msg
      */
     done: function (msg, info) {
-        if (this.mute) { return; }
-        console.log('  ', colors.green.bold(msg), ':', info);
+        if (this.silent) { return; }
+        console.log('  ', colors.green.bold(msg), '|', info);
     },
 
     /**

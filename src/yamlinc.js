@@ -54,12 +54,8 @@ module.exports = {
 
     /**
      * Output mode.  Default: FILE
-     *
-     * Possible modes:
-     * FILE
-     * STDOUT
      */
-    output: 'FILE',
+    output: null,
 
     /**
      * Supported options.
@@ -106,7 +102,9 @@ module.exports = {
 
         // handle command-line options
         for (let option in this.options) {
-            if (args.indexOf(option) > -1) {
+            let index = args.indexOf(option)
+            if (index > -1) {
+                args.splice(index, 1)
                 this[this.options[option]](args);
             }
         }
@@ -120,30 +118,26 @@ module.exports = {
             let index = args.indexOf(command)
             if (index > -1) {
                 args.splice(index, 1)
-                let func = this[this.commands[command]]
-                return func(args, cb)
+                return this[this.commands[command]](args, cb)
             }
         }
 
         // looking for file in arguments
-        let inputFile = cli.getInputFile(args);
-        if (!fileFile) { return helpers.error("Problem", "Missing file name, type: 'yamlinc --help'", cb) }
-
-        // generate name of .inc.yml output file
-        let outputFile = cli.getOutputFile(file);
+        let files = cli.getFiles(args, this.output, false);
+        if (!files) { return helpers.error('Problem', "Missing file name, type: 'yamlinc --help'", cb) }
 
         // compile yaml files
-        return compiler.parse(inputFile, outputFile, cb);
+        return compiler.parse(files, cb);
     },
 
     /**
      * Run command after compile file.
      */
     runExecutable: function (args, cb) {
-        let files = this.getFiles(args, true);
+        let files = this.getFiles(args, this.output, true);
         if (!files) { return helpers.error('Problem', 'Missing input file on executable.', cb) }
 
-        compiler.parse(files.input, files.output, cb);
+        compiler.parse(files, cb);
 
         this.spawn(args.shift(), args);
     },
@@ -153,7 +147,7 @@ module.exports = {
      *
      */
     watchExecutable: function (args, cb) {
-        let files = cli.getFiles(args, true);
+        let files = cli.getFiles(args, this.output, true);
         if (!files) { return helpers.error('Problem', 'Missing input file to watch.', cb) }
 
         let match = [];
@@ -161,15 +155,15 @@ module.exports = {
 
         let watcher = chokidar.watch(match, { persistent: true, usePolling: true })
 
-        compiler.parse(files.input, files.output, cb);
+        compiler.parse(files, cb);
 
         let cmd = args.shift();
 
-        watcher.on('change', (file) => this.handleFileChange(file, input, cmd, args))
-        watcher.on('unlink', (file) => this.handleFileChange(file, input, cmd, args))
+        watcher.on('change', (file) => this.handleFileChange(file, files, cmd, args))
+        watcher.on('unlink', (file) => this.handleFileChange(file, files, cmd, args))
 
         setTimeout(() => { this.watching = true; this.spawn(cmd, args) }, 1000);
-        setTimeout(() => { watcher.on('add', (file) => this.handleFileChange(file, input, cmd, args))}, 15000);
+        setTimeout(() => { watcher.on('add', (file) => this.handleFileChange(file, files, cmd, args))}, 15000);
     },
 
     /**
@@ -182,7 +176,7 @@ module.exports = {
         helpers.info('Command', cmd + ' ' + args.join(' '));
         helpers.spawn(cmd, args, () => {
             this.running = false;
-        });
+        })
     },
 
     /**
@@ -196,7 +190,7 @@ module.exports = {
     handleFileChange: function (file, files, cmd, args) {
         if (this.skipFileChange(file, files)) { return }
         helpers.info('Changed', file);
-        compiler.parse(files.input, files.output);
+        compiler.parse(files);
         if (!this.running) { this.spawn(cmd, args) }
     },
 
@@ -237,10 +231,8 @@ module.exports = {
      * @param args
      */
     setSilent: function (args) {
-        args.splice(args.indexOf('--silent'), 1);
-        args.splice(args.indexOf('-s'), 1);
-        helpers.silent = true;
-        this.silent = true;
+        helpers.silent = true
+        this.silent = true
     },
 
     /**
@@ -290,14 +282,6 @@ module.exports = {
      * Get software version.
      */
     getVersion: function () {
-        let info = JSON.parse(fs.readFileSync(join(__dirname, '../package.json')), 'utf8');
-        return info.name + '@' + info.version;
-    },
-
-    /**
-     * Get software version.
-     */
-    getVersion: function () {
         return console.log(helpers.getVersion());
     },
 
@@ -306,6 +290,6 @@ module.exports = {
      */
     getHelp: function () {
         let help = join(__dirname, '../help/help.txt');
-        return console.log(fs.readFileSync(help) + '');
+        return console.log(fs.readFileSync(help).toString());
     }
 }
