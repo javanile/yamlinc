@@ -27,7 +27,7 @@ module.exports = {
      * @param file
      */
     getTagRegExp: function(file) {
-        return this.tagRegExp;
+        return this.tag.yamlRegExp
     },
 
     /**
@@ -37,8 +37,8 @@ module.exports = {
      * @returns {string} yaml meta code
      */
     parse: function (file) {
-        let code = fs.readFileSync(file).toString(),
-            expr = this.getTagRegExp(file)
+        let expr = this.getTagRegExp(file)
+        let code = fs.readFileSync(file).toString()
 
         return code.replace(expr, (token) => {
             return token.replace(this.tag.name, this.tag.name + '_' + cuid())

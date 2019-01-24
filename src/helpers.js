@@ -14,12 +14,12 @@ module.exports = {
     /**
      * Mute print info/error message
      */
-    silent: false,
+    amend: false,
 
     /**
      * Mute print info/error message
      */
-    strict: false,
+    silent: false,
 
     /**
      * Print error message.
@@ -29,7 +29,7 @@ module.exports = {
      * @param callback
      */
     error: function (type, error, callback) {
-        if (!this.silent) { console.log(' >',colors.red.bold(type), '|', error) }
+        if (!this.silent) { console.log('>', colors.red.bold(type), '|', error) }
         if (this.amend) { process.exit(1) }
         return this.isFunction(callback) && callback({ type: type, error: error });
     },
@@ -42,7 +42,7 @@ module.exports = {
      */
     info: function (msg, info) {
         if (this.silent) { return; }
-        console.log('  ', colors.gray.bold(msg), '|', info);
+        console.log(' ', colors.cyan.bold(msg), '|', info);
     },
 
     /**
@@ -53,7 +53,7 @@ module.exports = {
      */
     done: function (msg, info) {
         if (this.silent) { return; }
-        console.log('  ', colors.green.bold(msg), '|', info);
+        console.log(' ', colors.green.bold(msg), '|', info);
     },
 
     /**

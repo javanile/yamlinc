@@ -1,6 +1,7 @@
 
 game:
   $include: sample1-include1.yml
+  $include: .sample1z-include1.yml
   figures:
   - fig1
   - fig2

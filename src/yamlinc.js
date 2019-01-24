@@ -10,7 +10,6 @@ const fs = require('fs')
     , basename = require('path').basename
     , join = require('path').join
     , chokidar = require('chokidar')
-    //, merge = require('deepmerge')
     , compiler = require('./compiler')
     , helpers = require('./helpers')
     , tag = require('./tag')
@@ -105,7 +104,7 @@ module.exports = {
             let index = args.indexOf(option)
             if (index > -1) {
                 args.splice(index, 1)
-                this[this.options[option]](args);
+                this[this.options[option]](args, index, cb);
             }
         }
 
@@ -134,7 +133,7 @@ module.exports = {
      * Run command after compile file.
      */
     runExecutable: function (args, cb) {
-        let files = this.getFiles(args, this.output, true);
+        let files = cli.getFiles(args, this.output, true);
         if (!files) { return helpers.error('Problem', 'Missing input file on executable.', cb) }
 
         compiler.parse(files, cb);
@@ -170,13 +169,11 @@ module.exports = {
      * Repeat spawn command
      */
     spawn: function (cmd, args) {
-        if (this.running) { return; }
-
-        this.running = true;
-        helpers.info('Command', cmd + ' ' + args.join(' '));
-        helpers.spawn(cmd, args, () => {
-            this.running = false;
-        })
+        if (!this.running) {
+            helpers.info('Command', cmd + ' ' + args.join(' '));
+            helpers.spawn(cmd, args, () => { this.running = false })
+            this.running = true;
+        }
     },
 
     /**
@@ -240,25 +237,16 @@ module.exports = {
      *
      * @param args
      */
-    setOutput: function (args) {
-        let index = args.indexOf('--output');
-        if (index < 0) index = args.indexOf('-o');
-        if (index < 0) return;
+    setOutput: function (args, index, cb) {
+        if (!args[index]) {
+            return helpers.error('Problem', `Missing output file name, type: 'yamlinc --help'.`, cb);
+        }
 
-        if (args[index + 1] === null || args[index + 1] === undefined ||
-            args[index + 2] === null || args[index + 2] === undefined) {
-            this.strict = true;
-            helpers.strict = true;
-            helpers.error('Problem', `Missing output file name, type: 'yamlinc --help'.`);
-        } else {
-            if (args[index + 1] === '-') {
-                this.setSilent();
-                this.outputMode = 'STDOUT'
-                this.outputFileName = '';
-            } else {
-                this.outputMode = 'FILE';
-                this.outputFileName = args[index + 1];
-            }
+        this.output = args[index]
+        args.splice(index, 1)
+
+        if (this.output == '-') {
+            this.setSilent()
         }
     },
 
@@ -268,10 +256,9 @@ module.exports = {
      * @param args
      */
     setSchema: function(args) {
-        args = helpers.removeArguments(args, ['--schema', ])
-        let index = args.indexOf('--schema');
-        if (index < 0) index = args.indexOf('-s');
-        if (index < 0) return;
+        if (!args[index]) {
+            return helpers.error('Problem', `Missing schema file name, try: 'yamlinc --help'.`, cb);
+        }
         const path = require('path');
         const schemaPath = args[index + 1];
         const fullPath = path.join(process.cwd(), schemaPath);

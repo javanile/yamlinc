@@ -16,6 +16,7 @@ module.exports = (tag) => {
     return {
         name: tag,
         escaped: escaped,
-        yamlRegExp: new RegExp('^[ \\t]*' + escaped + '[ \\t]*:', 'gmi')
+        yamlRegExp: new RegExp('^[ \\t]*' + escaped + '[ \\t]*:', 'gmi'),
+        metaRegExp: new RegExp('^' + escaped + '_[a-z0-9]{25}$')
     }
 }

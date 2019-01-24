@@ -7,11 +7,20 @@
 const fs = require('fs')
     , yamljs = require('js-yaml')
     , dirname = require('path').dirname
+    , basename = require('path').basename
+    , join = require('path').join
+    , deepmerge = require('deepmerge')
     , sanitize = require('./sanitize')
     , metacode = require('./metacode')
     , helpers = require('./helpers')
 
 module.exports = {
+
+    /**
+     *
+     */
+    tag: null,
+
     /**
      * Output file name.  Default: <inputFilePrefix>.inc.<inputFileSuffix>
      */
@@ -21,6 +30,7 @@ module.exports = {
      *
      */
     setTag: function(tag) {
+        this.tag = tag
         metacode.setTag(tag)
     },
 
@@ -43,12 +53,12 @@ module.exports = {
             helpers.error('Problem', `Error on file '${file}' ${error.message}`);
         }
 
-        this.current = file;
-        this.resolve(data, path);
+        this.current = file
+        this.resolve(data, path)
 
-        sanitize(data);
+        sanitize(data)
 
-        return data;
+        return data
     },
 
     /**
@@ -58,16 +68,14 @@ module.exports = {
      * @param string $includeTag tag to include file
      */
     resolve: function (data, path) {
-        if (typeof data !== 'object') {
-            return;
-        }
+        if (typeof data !== 'object') { return }
 
         let includes = {};
         for (let key in data) {
-            if (this.isKeyMatchIncludeTag(key)) {
-                if (typeof data[key] === "string" && data[key]) {
+            if (this.isMetaTag(key)) {
+                if (typeof data[key] === 'string' && data[key]) {
                     includes = this.include(path, data[key], includes);
-                } else if (typeof data[key] === "object") {
+                } else if (typeof data[key] === 'object') {
                     for (let index in data[key]) {
                         includes = this.include(path, data[key][index], includes);
                     }
@@ -79,7 +87,7 @@ module.exports = {
         }
 
         if (helpers.isNotEmptyObjectOrArray(includes)) {
-            data = Object.assign(data, merge(data, includes));
+            data = Object.assign(data, deepmerge(data, includes));
         }
 
         return data;
@@ -91,25 +99,23 @@ module.exports = {
      * @param includes
      * @returns {*}
      */
-    include: function (base, file, includes) {
-        if (helpers.fileExists(base + '/' + file)) {
-            helpers.info('Include', file);
+    include: function (path, name, includes) {
+        let file = join(path, name)
 
-            let include = this.resolve(base + '/' + file);
-
+        if (helpers.fileExists(file)) {
+            helpers.info('Include', file)
+            let include = this.parse(file)
             if (helpers.isNotEmptyObjectOrArray(include)) {
-                includes = Object.assign(includes, merge(includes, include));
+                includes = Object.assign(includes, deepmerge(includes, include));
             }
-
-            return includes;
+        } else {
+            let code = fs.readFileSync(this.current).toString()
+            console.log(code);
+            let line = (code.substr(0, code.indexOf(name)).match(/\n/g) || []).length + 1;
+            helpers.error('Problem', `File not found '${name}' on '${this.current}' at line ${line}.`);
         }
 
-        // Detect file not found on resolve file
-        let code = fs.readFileSync(this.currentResolve).toString();
-        let line = (code.substr(0, code.indexOf(file)).match(/\n/g) || []).length + 1;
-        helpers.error('Problem', `file not found '${file}' on '${this.currentResolve}' at line ${line}.`);
-
-        return includes;
+        return includes
     },
 
     /**
@@ -119,7 +125,7 @@ module.exports = {
      * @param includeTag
      * @returns {Array|{index: number, input: string}|*}
      */
-    isKeyMatchIncludeTag: function (key) {
-        return key.match(new RegExp('^' + this.escapeTag + '_[a-z0-9]{25}$'));
+    isMetaTag: function (tag) {
+        return tag.match(this.tag.metaRegExp);
     }
 }
