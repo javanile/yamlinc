@@ -194,7 +194,7 @@ module.exports = {
         let yamlinc = this;
         return fs.readFileSync(file).toString()
             .replace(this.getRegExpIncludeTag(), function (tag) {
-                return tag.replace(yamlinc.includeTag, yamlinc.includeTag + '_' + cuid());
+                return tag.replace(yamlinc.includeTag, yamlinc.includeTag + '_' + cuid().replace(/[\W]+/g, ''));
             });
     },
 
