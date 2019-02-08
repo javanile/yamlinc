@@ -194,7 +194,10 @@ module.exports = {
         let yamlinc = this;
         return fs.readFileSync(file).toString()
             .replace(this.getRegExpIncludeTag(), function (tag) {
-                return tag.replace(yamlinc.includeTag, yamlinc.includeTag + '_' + cuid().replace(/[\W]+/g, ''));
+                return tag.replace(
+                    yamlinc.includeTag,
+                    yamlinc.includeTag + '_' + (cuid().replace(/[\W]+/g, '') + '0123456789012345678901234').substr(0, 25)
+                );
             });
     },
 
