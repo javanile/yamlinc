@@ -16,7 +16,7 @@ describe('Testing Schema', function () {
         yamlinc.run([
             '--schema',
             './node_modules/cloudformation-schema-js-yaml',
-            __dirname + 'samples/sample7-cloudfront.yaml',
+            join(__dirname, 'samples/sample7-cloudfront.yaml'),
           ], (debug) => {
             var incCompiled = fs.readFileSync(__dirname + '/../' + debug.incFile)
             var yamlLoad = yaml.safeLoad(
