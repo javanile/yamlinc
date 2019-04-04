@@ -63,7 +63,7 @@ module.exports = {
      */
     spawn: function (cmd, args, cb) {
         // Running command
-        let wrapper = spawn(cmd, args);
+        let wrapper = spawn(cmd, args, { shell: true });
 
         // Attach stdout handler
         wrapper.stdout.on('data', (data) => {
