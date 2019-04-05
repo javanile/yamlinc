@@ -277,7 +277,7 @@ module.exports = {
 
         let match = [];
         for (let i in this.extensions) {
-            match.push('./**/*.*');
+            match.push('./**/*.' + this.extensions[i]);
         }
 
         let watcher = chokidar.watch(match, {
