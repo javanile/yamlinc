@@ -14,19 +14,19 @@ describe('Testing File Extensions', function () {
 
     it('Handle Extensions', function (done) {
         let files = {
-            'fixtures/sample1/sample1.yml':  /\.inc\.yml$/,
-            'fixtures/sample2/sample2.YAML': /\.inc\.YAML/,
-            'fixtures/sample3/sample3.Yml':  /\.inc\.Yml$/,
-            'fixtures/sample4/sample4.yaml': /\.inc\.yaml$/,
-            'fixtures/sample5/sample5.Yaml': /\.inc\.Yaml$/,
-            'fixtures/sample6/sample6.YML':  /\.inc\.YML$/,
+            'samples/sample1/sample1.yml':  /\.inc\.yml$/,
+            'samples/sample2/sample2.YAML': /\.inc\.YAML/,
+            'samples/sample3/sample3.Yml':  /\.inc\.Yml$/,
+            'samples/sample4/sample4.yaml': /\.inc\.yaml$/,
+            'samples/sample5/sample5.Yaml': /\.inc\.Yaml$/,
+            'samples/sample6/sample6.YML':  /\.inc\.YML$/,
         }
 
         for (let file in files) {
             yamlinc.run([join(__dirname, file)], (debug) => {
                 chai.assert.match(debug.output, files[file])
                 fs.unlinkSync(join(process.cwd(), debug.output))
-                if (file == 'fixtures/sample6/sample6.YML') { done() }
+                if (file == 'samples/sample6/sample6.YML') { done() }
             })
         }
     })

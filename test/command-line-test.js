@@ -26,7 +26,7 @@ describe('Testing Command-line', function () {
         yamlinc.run([
             '--schema',
             './node_modules/cloudformation-schema-js-yaml',
-            __dirname + '/samples/sample7-cloudfront.yaml',
+            __dirname + '/samples/sample7/sample7-cloudfront.yaml',
           ], function (debug) {
             var incCompiled = fs.readFileSync(__dirname + '/../' + debug.incFile)
             var yamlLoad = yaml.safeLoad(
@@ -37,8 +37,8 @@ describe('Testing Command-line', function () {
             var header = '## --------------------\n' +
                          '## DON\'T EDIT THIS FILE\n' +
                          '## --------------------\n' +
-                         '## Engine: yamlinc@0.1.6\n' +
-                         '## Source: ' + __dirname + '/samples/sample7-cloudfront.yaml' + '\n\n'
+                         '## Engine: ' + helpers.getVersion() + '\n' +
+                         '## Source: ' + __dirname + '/samples/sample7/sample7-cloudfront.yaml' + '\n\n'
             var yamlDumpWitHeader = header + yaml.safeDump(yamlLoad)
             chai.assert.deepEqual(incCompiled.toString(), yamlDumpWitHeader);
             done();
