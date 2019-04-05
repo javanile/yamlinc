@@ -8,11 +8,10 @@ var yamlinc = require('../src/yamlinc'),
 
 chai.use(require('chai-fs'));
 
-yamlinc.mute = true;
-helpers.mute = true;
+yamlinc.setSilent();
 
 describe('Testing Parser', function () {
-
+    
     it('Simple inclusion', function () {
         chai.assert.deepEqual(
             yamlinc.resolve(__dirname + '/samples/sample1/sample1.yml'),
