@@ -59,6 +59,8 @@ During development you need constantily updated compiled file by watching change
 $ yamlinc --watch spectacle -d my_swagger_doc.yml
 ```
 
+This example generate documentation with [spectacle](https://github.com/sourcey/spectacle)
+
 ## Feed your .inc.yml file
 If your application needs a compiled file as parameter you can simply compound and feed
 
