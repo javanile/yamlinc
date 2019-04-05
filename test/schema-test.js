@@ -28,7 +28,7 @@ describe('Testing Schema', function () {
             var header = '## --------------------\n' +
                          '## DON\'T EDIT THIS FILE\n' +
                          '## --------------------\n' +
-                         '## Engine: yamlinc@0.1.6\n' +
+                         '## Engine: ' + helpers.getVersion() + '\n' +
                          '## Source: ' + __dirname + '/samples/sample7/sample7-cloudfront.yaml' + '\n\n'
             var yamlDumpWitHeader = header + yaml.safeDump(yamlLoad)
             chai.assert.deepEqual(incCompiled.toString(), yamlDumpWitHeader);
