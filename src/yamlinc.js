@@ -11,6 +11,7 @@ const fs = require('fs')
     , join = require('path').join
     , chokidar = require('chokidar')
     , compiler = require('./compiler')
+    , resolver = require('./resolver')
     , helpers = require('./helpers')
     , tag = require('./tag')
     , cli = require('./cli')
@@ -127,6 +128,17 @@ module.exports = {
 
         // compile yaml files
         return compiler.parse(files, cb);
+    },
+    
+    /**
+     * Load file and resolve all inclusion.
+     *
+     * @param file input file to resolve
+     * @returns {string} yaml code
+     */
+    resolve: function(file) {
+        resolver.setTag(tag(this.tag))
+        return resolver.parse(file);
     },
 
     /**
