@@ -88,7 +88,7 @@ module.exports = {
      * @returns {*}
      */
     fileExists: function(file) {
-        return file && fs.existsSync(file) && fs.lstatSync(file).isFile();
+        return file && fs.existsSync(file) && fs.statSync(file).isFile();
     },
 
     /**
