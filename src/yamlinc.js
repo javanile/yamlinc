@@ -440,7 +440,7 @@ module.exports = {
      * @returns {RegExp}
      */
     getRegExpIncludeTag: function () {
-        return new RegExp('^[ \\t]*' + this.escapeTag + '[ \\t]*:', 'gmi');
+        return new RegExp('^[- \\t]*' + this.escapeTag + '[- \\t]*:', 'gmi');
     },
 
     /**
