@@ -1,0 +1,20 @@
+array1:
+  - el: el.a
+    prop: el.a prop
+  - el: el.b
+    prop: el.b prop
+
+array2:
+  - el: el.a
+    prop: el.a prop
+  - el: el.c
+    prop: el.c prop
+  - el: el.b
+    prop: el.b prop
+
+array3:
+  - el: el.a
+    prop: el.a prop
+    array4:
+      - el: el.b
+        prop: el.b prop

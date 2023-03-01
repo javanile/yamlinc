@@ -1,0 +1,14 @@
+array1:
+  - $include: sample8-include1.yml
+  - $include: sample8-include2.yml
+
+array2:
+  - $include: sample8-include1.yml
+  - el: el.c
+    prop: el.c prop
+  - $include: sample8-include2.yml
+
+array3:
+  - $include: sample8-include1.yml
+    array4:
+      - $include: sample8-include2.yml

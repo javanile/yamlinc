@@ -53,14 +53,16 @@ $ yamlinc my_swagger_doc.yml
 > **NOTICE:** Yamlinc appends '*.inc.yml' extension to compiled file.
 
 ## Development watcher
-During development you need costantily updated compiled file by watching changes of dependencies
+During development you need constantily updated compiled file by watching changes of dependencies
 
 ```bash
 $ yamlinc --watch spectacle -d my_swagger_doc.yml
 ```
 
+This example generates documentation with [spectacle](https://github.com/sourcey/spectacle)
+
 ## Feed your .inc.yml file
-If your application needs a copiled file as parameter you can simply compound and feed
+If your application needs a compiled file as parameter you can simply compound and feed
 
 ```bash
 $ yamlinc --exec docker-compose -f docker-compose.yml

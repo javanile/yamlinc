@@ -59,6 +59,12 @@ describe('Testing Yamlinc', function () {
             );
         });
 
+        it('Include array elements', function () {
+          chai.assert.deepEqual(
+              yamlinc.resolve(__dirname + '/samples/sample8.YML'),
+              yaml.safeLoad(fs.readFileSync(__dirname + '/samples/sample8-verify.yml'))
+          );
+        })
     });
 
     describe('Testing Command-line', function () {
@@ -114,7 +120,7 @@ describe('Testing Yamlinc', function () {
                 var header = '## --------------------\n' +
                              '## DON\'T EDIT THIS FILE\n' +
                              '## --------------------\n' +
-                             '## Engine: yamlinc@0.1.6\n' +
+                             '## Engine: yamlinc@0.1.9\n' +
                              '## Source: ' + __dirname + '/samples/sample7-cloudfront.yaml' + '\n\n'
                 var yamlDumpWitHeader = header + yaml.safeDump(yamlLoad)
                 chai.assert.deepEqual(incCompiled.toString(), yamlDumpWitHeader);

@@ -63,7 +63,7 @@ module.exports = {
      */
     spawn: function (cmd, args, cb) {
         // Running command
-        let wrapper = spawn(cmd, args);
+        let wrapper = spawn(cmd, args, { shell: true });
 
         // Attach stdout handler
         wrapper.stdout.on('data', (data) => {
@@ -88,7 +88,7 @@ module.exports = {
      * @returns {*}
      */
     fileExists: function(file) {
-        return file && fs.existsSync(file) && fs.lstatSync(file).isFile();
+        return file && fs.existsSync(file) && fs.statSync(file).isFile();
     },
 
     /**
