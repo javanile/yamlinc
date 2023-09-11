@@ -1,4 +1,15 @@
+<div align="center">
+
+# ⭐ Give me a star, please! ⭐
+
+<img src="https://raw.githubusercontent.com/francescobianco/gif/main/images/give-stars-h192.gif" /><img src="https://raw.githubusercontent.com/francescobianco/gif/main/images/push-button-h192.gif" />
+
+</div>
+
+---
+
 # Yamlinc
+
 Create a composed YAML file using $include tag.
 
 [![NPM](https://nodei.co/npm/yamlinc.png?compact=true)](https://nodei.co/npm/yamlinc/)
