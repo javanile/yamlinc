@@ -1,8 +1,10 @@
 <div align="center">
 
-<a href="https://www.javanile.org/hackathon/?from=yamlinc" target="_blank">
-<img src="https://www.javanile.org/hackathon/assets/images/devops-hackathon-banner.png" alt="DevOps Hackathon" />
+
+<a href="https://www.javanile.org/hackathon/">
+<img src="https://raw.githubusercontent.com/javanile/hackathon/refs/heads/main/assets/images/devops-hackathon-banner.svg" />
 </a>
+
 
 </div>
 
