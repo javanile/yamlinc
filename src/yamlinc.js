@@ -380,7 +380,7 @@ module.exports = {
         }
 
         // Compile and prepare disclaimer
-        helpers.info("Analize", file);
+        helpers.info("Analyze", file);
         let data = this.resolve(file);
         let disclaimer = [
             "## --------------------",
