@@ -1,8 +1,8 @@
 <div align="center">
 
 
-<a href="https://www.javanile.org/hackathon/">
-<img src="https://raw.githubusercontent.com/javanile/hackathon/refs/heads/main/assets/images/devops-hackathon-banner.svg" />
+<a href="https://vtc.javanile.org">
+<img src="https://raw.githubusercontent.com/javanile/vtiger-client/refs/heads/test/.github/assets/images/banner.png" />
 </a>
 
 
