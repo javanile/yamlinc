@@ -222,6 +222,10 @@ module.exports = {
                 }
                 delete data[key];
                 continue;
+            } else if (typeof data[key] === "string" && data[key]) {
+                // replace text content
+                let code = this.textReplace(base, data[key], includes);
+                if (code !== undefined) data[key] = code;
             }
             this.recursiveResolve(data[key], base);
         }
@@ -262,6 +266,33 @@ module.exports = {
         helpers.error('Problem', `file not found '${file}' on '${this.currentResolve}' at line ${line}.`);
 
         return includes;
+    },
+
+    /**
+     *
+     * @param file
+     * @param includes
+     * @returns {*}
+     */
+    textReplace: function (base, content, includes) {
+        let reg = new RegExp("^" + this.escapeTag + "_[a-z0-9]{25}: \\'([^\']*)\\'");
+        let match = reg.exec(content);
+        if (match == undefined || match.length < 2) return; 
+        let file = match[1];
+
+        if (helpers.fileExists(base + '/' + file)) {
+            helpers.info('Include', file);
+            file = base + '/' + file;
+
+            return this.loadMetacode(file);
+        }
+
+        // Detect file not found on resolve file
+        let code = fs.readFileSync(this.currentResolve).toString();
+        let line = (code.substr(0, code.indexOf(file)).match(/\n/g) || []).length + 1;
+        helpers.error('Problem', `file not found '${file}' on '${this.currentResolve}' at line ${line}.`);
+
+        return code;
     },
 
     /**
